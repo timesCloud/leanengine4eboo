@@ -75,9 +75,46 @@ AV.Cloud.afterSave('BatchTable', function(request){
   });
 });
 
-AV.Cloud.afterUpdate('OrderTable', function(request){
-  console.log("进入OrderTable afterUpdate");
-  var originOrder = request.object;
+AV.Cloud.define('Number2ID', function(request, response) {
+  var number = request.params.number;
+  var keepLength = request.params.keepLength;
+  var len = number.toString().length;
+  if (len > keepLength) {
+    number = number % 100000000;//截取低8位
+  } else {
+    while (len < keepLength) {
+      number = "0" + number;
+      len++;
+    }
+  }
+  response.success(number);
+});
+
+AV.Cloud.afterSave('OrderTable', function(request){
+  var orderTable = request.object;
+  var orderNo = orderTable.get("orderNo");
+  var orderSC = orderTable.get("orderSC");
+  var orderDC = orderTable.get("orderDC");
+  orderSC.fetch({
+    success:function(sc){
+      var scID = sc.get("scID");
+      orderDC.fetch({
+        success:function(dc){
+          var dcID = dc.get("dcID");
+          AV.Cloud.run('Number2ID', {number : orderNo, keepLength : 8}, {
+            success:function(num){
+              orderTable.set("orderID", scID + dcID + num);
+              orderTable.save();
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
+AV.Cloud.define('OrderDivision', function(request, response){
+  var originOrder = request.params.object;
   var originOrderSC = originOrder.get("orderSC");
   var OrderTable = AV.Object.extend("OrderTable");
   if(~originOrderSC){
@@ -137,9 +174,11 @@ AV.Cloud.afterUpdate('OrderTable', function(request){
         }else{
           console.log("原始订单不包含订单明细，放弃处理");
         }
+        response.success();
       },
       error:function(error){
         console.log(error.code + ' : ' + error.message);
+        response.error(error);
       }
     })
   }
@@ -147,6 +186,19 @@ AV.Cloud.afterUpdate('OrderTable', function(request){
     console.log("原始订单分拣中心字段非空，放弃处理");
     //统计价格
   }
+});
+
+AV.Cloud.afterUpdate('OrderTable', function(request){
+  console.log("进入OrderTable afterUpdate");
+  var originOrder = request.object;
+  AV.Cloud.run('OrderDivision', {object : request.object}, {
+    success:function(object){
+
+    },
+    error:function(error){
+
+    }
+  });
 });
 
 AV.Cloud.afterSave('DetailPrice', function(request) {
@@ -185,7 +237,6 @@ AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
     var todayEnd = moment(dt).endOf('day');
     var orderSC = orderDetail.get("orderSC");
     var product = orderDetail.get("orderDetailProductName");
-    console.log("orderDetail afterSave begin:", todayStart.toDate(), " to ", todayEnd.toDate(), " SC:", orderSC.id, "PD:", product.id);
 
     var query = new AV.Query(OrderSum4SC);
     query.equalTo("sortingCenter", orderSC);
@@ -246,6 +297,7 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
         var realUnit = unitPerPackage * orderDetailProductCount;
         orderDetail.set("realUnit", realUnit);
         orderDetail.set("realPrice", unitPrice * realUnit);
+        orderDetail.set("orderSC", pd.get("sortingCenter"));
 
         AV.Cloud.run('incrementOrderSum4SC', {object: orderDetail}, {
           success: function (orderSum) {
@@ -254,11 +306,11 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
             response.success();
           },
           error: function (err) {
-            response.success();//即便订货总量更新失败，仍然让订单明细保存成功
+            //即便订货总量更新失败，仍然让订单明细保存成功
+            //但这里不修改lastCount和lastRealUnit，仍保留值0，那么如果orderDetail会发生修改，则还有一次将总量修正的机会
+            response.success();
           }
         });
-
-        response.success();
       }
     });
     console.log("订单明细保存成功");
