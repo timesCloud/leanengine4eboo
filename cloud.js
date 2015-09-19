@@ -237,30 +237,31 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
   if (orderDetail) {
     orderDetail.set("lastCount", 0);
     orderDetail.set("lastRealUnit", 0);
-    AV.Cloud.run('incrementOrderSum4SC', {object: orderDetail}, {
-      success: function (orderSum) {
-        var product = orderDetail.get("orderDetailProductName");
-        product.fetch({
-          success: function (pd) {
-            var unitPerPackage = pd.get("unitPerPackage");
-            var unitPrice = pd.get("unitPrice");
-            var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
-            var realUnit = unitPerPackage * orderDetailProductCount;
-            orderDetail.set("realUnit", realUnit);
-            //第一次保存时，两个历史值lastCount和lastRealUnit都设置为0，之后在afterSave中就可以以正确的差值修改每日订货量
+    var product = orderDetail.get("orderDetailProductName");
+    product.fetch({
+      success: function (pd) {
+        var unitPerPackage = pd.get("unitPerPackage");
+        var unitPrice = pd.get("unitPrice");
+        var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
+        var realUnit = unitPerPackage * orderDetailProductCount;
+        orderDetail.set("realUnit", realUnit);
+        orderDetail.set("realPrice", unitPrice * realUnit);
+
+        AV.Cloud.run('incrementOrderSum4SC', {object: orderDetail}, {
+          success: function (orderSum) {
             orderDetail.set("lastCount", orderDetailProductCount);
             orderDetail.set("lastRealUnit", orderDetail.get("realUnit"));
-            orderDetail.set("realPrice", unitPrice * realUnit);
             response.success();
+          },
+          error: function (err) {
+            response.success();//即便订货总量更新失败，仍然让订单明细保存成功
           }
         });
-        console.log("订单明细保存成功");
 
-      },
-      error: function (err) {
-        response.error();
+        response.success();
       }
     });
+    console.log("订单明细保存成功");
   }
 });
 
