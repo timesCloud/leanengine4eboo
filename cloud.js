@@ -98,7 +98,7 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
   var orderDC = orderTable.get("orderDC");
   var orderID = orderTable.get("orderID");
 
-  if(!orderNo || !orderSC || !orderDC || orderID) {
+  if(orderNo && orderSC && orderDC && !orderID) {
     AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
       success: function (num) {
         orderSC.fetch({
@@ -140,18 +140,9 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
       }
     });
   }
-});
-
-AV.Cloud.afterSave('OrderTable', function(request) {
-  console.log("进入OrderTable afterave");
-  AV.Cloud.run('GenerateOrderID', {object : request.object}, {
-    success:function(object){
-
-    },
-    error:function(error){
-
-    }
-  });
+  else{
+    console.log(orderNo, orderSC, orderDC, !orderID)
+  }
 });
 
 AV.Cloud.define('OrderDivision', function(request, response){
