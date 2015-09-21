@@ -187,6 +187,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
                 newOrder.set("orderStatus", originOrder.get("orderStatus"));
                 newOrder.set("orderSC", pendingOrderSC);
                 newOrder.set("orderDC", originOrder.get("orderDC"));
+                newOrder.set("refunded", true);
                 newOrder.set("orderDeliveryRoute", originOrder.get("orderDeliveryRoute"));
 
                 orderArray.push(newOrder);//将新订单放进订单数组
@@ -196,9 +197,10 @@ AV.Cloud.define('OrderDivision', function(request, response){
               var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
               orderDetailInNewOrder.add(pendingOrderDetail);
               var curSumPrice = matchedOrder.get("orderSumPrice");
+              if(!curSumPrice) curSumPrice = 0;
               console.log("累计前价格：",curSumPrice);
               matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
-              console.log("累计后价格：",matchedOrder.get("curSumPrice"));
+              console.log("累计后价格：",matchedOrder.get("orderSumPrice"));
             }
           }
 
