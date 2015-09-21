@@ -90,47 +90,65 @@ AV.Cloud.define('Number2ID', function(request, response) {
   response.success(number);
 });
 
-AV.Cloud.afterSave('OrderTable', function(request) {
-  var orderTable = request.object;
+AV.Cloud.define('GenerateOrderID', function(request, response){
+  var orderTable = request.params.object;
 
   var orderNo = orderTable.get("orderNo");
   var orderSC = orderTable.get("orderSC");
   var orderDC = orderTable.get("orderDC");
+  var orderID = orderTable.get("orderID");
 
-  AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
-    success: function (num) {
-      orderSC.fetch({
-        success: function (sc) {
-          var scID = sc.get("scID");
-          orderDC.fetch({
-            success: function (dc) {
-              var dcID = dc.get("dcID");
-              orderTable.set("orderID", scID + dcID + num);
-              orderTable.save();
-            },
-            error: function (error) {
-              var dcID = "";
-              orderTable.set("orderID", scID + dcID + num);
-              orderTable.save();
-            }
-          });
-        },
-        error: function (error) {
-          var scID = "";
-          orderDC.fetch({
-            success: function (dc) {
-              var dcID = dc.get("dcID");
-              orderTable.set("orderID", scID + dcID + num);
-              orderTable.save();
-            },
-            error: function (error) {
-              var dcID = "";
-              orderTable.set("orderID", scID + dcID + num);
-              orderTable.save();
-            }
-          });
-        }
-      });
+  if(!orderNo || !orderSC || !orderDC || orderID) {
+    AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
+      success: function (num) {
+        orderSC.fetch({
+          success: function (sc) {
+            var scID = sc.get("scID");
+            orderDC.fetch({
+              success: function (dc) {
+                var dcID = dc.get("dcID");
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+                response.success();
+              },
+              error: function (error) {
+                var dcID = "";
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+                response.success();
+              }
+            });
+          },
+          error: function (error) {
+            var scID = "";
+            orderDC.fetch({
+              success: function (dc) {
+                var dcID = dc.get("dcID");
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+                response.success();
+              },
+              error: function (error) {
+                var dcID = "";
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+                response.success();
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+});
+
+AV.Cloud.afterSave('OrderTable', function(request) {
+  AV.Cloud.run('GenerateOrderID', {object : request.object}, {
+    success:function(object){
+
+    },
+    error:function(error){
+
     }
   });
 });
@@ -193,7 +211,14 @@ AV.Cloud.define('OrderDivision', function(request, response){
             var order = orderArray[k];
             var orderNo = k + 1;
             console.log("保存订单：" + orderNo + "/" + orderArray.length);
-            order.save();
+            AV.Cloud.run('GenerateOrderID', {object : order}, {
+              success:function(object){
+                console.log("保存订单：" , orderNo , "/" , orderArray.length, "成功");
+              },
+              error:function(error) {
+                console.log("保存订单：" , orderNo , "/" , orderArray.length, "失败");
+              }
+            });
           }
         }else{
           console.log("原始订单不包含订单明细，放弃处理");

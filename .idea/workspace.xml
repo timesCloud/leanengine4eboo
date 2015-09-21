@@ -44,8 +44,8 @@
       <file leaf-file-name="cloud.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cloud.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5959596">
-              <caret line="406" column="6" selection-start-line="406" selection-start-column="6" selection-end-line="406" selection-end-column="6" />
+            <state vertical-scroll-proportion="-0.46464646">
+              <caret line="218" column="79" selection-start-line="218" selection-start-column="79" selection-end-line="218" selection-end-column="79" />
               <folding />
             </state>
           </provider>
@@ -124,8 +124,8 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="377" />
-    <option name="y" value="-877" />
+    <option name="x" value="1280" />
+    <option name="y" value="55" />
     <option name="width" value="1276" />
     <option name="height" value="745" />
   </component>
@@ -282,7 +282,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="377" y="-877" width="1276" height="745" extended-state="6" />
+    <frame x="1280" y="55" width="1276" height="745" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -429,8 +429,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cloud.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5959596">
-          <caret line="406" column="6" selection-start-line="406" selection-start-column="6" selection-end-line="406" selection-end-column="6" />
+        <state vertical-scroll-proportion="-0.46464646">
+          <caret line="218" column="79" selection-start-line="218" selection-start-column="79" selection-end-line="218" selection-end-column="79" />
           <folding />
         </state>
       </provider>
