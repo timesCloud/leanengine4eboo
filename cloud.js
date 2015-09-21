@@ -195,7 +195,8 @@ AV.Cloud.define('OrderDivision', function(request, response){
 
               var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
               orderDetailInNewOrder.add(pendingOrderDetail);
-              matchedOrder.increment('orderSumPrice', pendingOrderDetail.get('realPrice'));
+              var curSumPrice = matchedOrder.get("orderSumPrice");
+              matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
             }
           }
 
@@ -204,6 +205,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
             var orderNo = k + 1;
             console.log("保存订单：" + orderNo + "/" + orderArray.length);
 
+            order.fetchWhenSave(true);
             order.save();
             AV.Cloud.run('GenerateOrderID', {object : order}, {
               success:function(object){
