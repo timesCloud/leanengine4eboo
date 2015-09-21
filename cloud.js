@@ -98,7 +98,6 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
   var orderDC = orderTable.get("orderDC");
   var orderID = orderTable.get("orderID");
 
-  console.log("编号所需字段:", orderNo, "", orderSC, "", orderDC, "", orderID);
   if(orderNo && orderSC && orderDC && !orderID) {
     AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
       success: function (num) {
@@ -142,7 +141,7 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
     });
   }
   else{
-    console.log(orderNo, orderSC, orderDC, !orderID)
+    console.log("编号生成失败：", orderNo, orderSC, orderDC, !orderID)
   }
 });
 
@@ -167,7 +166,6 @@ AV.Cloud.define('OrderDivision', function(request, response){
           for(var i=1; i<orderDetailList.length; i++){
             var pendingOrderDetail = orderDetailList[i];
             var pendingOrderSC = pendingOrderDetail.get("orderSC");
-            console.log("分拣中心Oid对比：",pendingOrderSC.id,firstOrderSC.id);
             if (pendingOrderSC.id != firstOrderSC.id){//如果有和原订单分拣中心不同的订单明细
               orderDetail.remove(pendingOrderDetail);//将该订单明细从原订单中移除
               var matchedOrder = null;
@@ -178,7 +176,6 @@ AV.Cloud.define('OrderDivision', function(request, response){
                   matchedOrder =curOrder;
                   break;
                 }
-                console.log("订单ID：" + pendingOrderSC.get("objectId") + curOrderSC.get("objectId"));
               }
               if(~matchedOrder){//如果没有找到同分拣中心匹配的子订单，则新建一个
                 var newOrder = new OrderTable();
@@ -212,13 +209,13 @@ AV.Cloud.define('OrderDivision', function(request, response){
 
             order.fetchWhenSave(true);
             order.save(null, {
-              success: function(savedOrder) {
+              success: function(savedOrder) {//save成功后才能fetch到orderNo
                 AV.Cloud.run('GenerateOrderID', {object : savedOrder}, {
                   success:function(object){
-                    console.log("生成订单编号：" , orderNo , "/" , orderArray.length, "成功");
+
                   },
                   error:function(error) {
-                    console.log("生成订单编号：" , orderNo , "/" , orderArray.length, "失败");
+
                   }
                 });
               }
