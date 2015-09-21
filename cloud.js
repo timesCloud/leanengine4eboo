@@ -98,7 +98,7 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
   var orderDC = orderTable.get("orderDC");
   var orderID = orderTable.get("orderID");
 
-  console.log(orderTable);
+  console.log("编号所需字段:", orderNo, "", orderSC, "", orderDC, "", orderID);
   if(orderNo && orderSC && orderDC && !orderID) {
     AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
       success: function (num) {
