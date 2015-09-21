@@ -94,7 +94,9 @@ AV.Cloud.afterSave('OrderTable', function(request) {
   var orderTable = request.object;
 
   var orderID = orderTable.get("orderID");
-  if (!orderID || (orderID && orderID.length != 12)) {//如果orderID为空，或不足12个字符，则进入下面的填充流程
+  var orderIDLength = 0;
+  if (orderID) orderIDLength = orderID.length;
+  if (!orderID || orderIDLength != 12) {//如果orderID为空，或不足12个字符，则进入下面的填充流程
     console.log("订单：",orderTable.id, "，重新填充订单编号", orderID, "，原长度：", orderID.length);
     var orderNo = orderTable.get("orderNo");
     var orderSC = orderTable.get("orderSC");
