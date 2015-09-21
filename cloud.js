@@ -80,7 +80,7 @@ AV.Cloud.define('Number2ID', function(request, response) {
   var keepLength = request.params.keepLength;
   var len = number.toString().length;
   if (len > keepLength) {
-    number = number % 100000000;//截取低8位
+    number = number % Math.pow(10,keepLength);//截取低6位
   } else {
     while (len < keepLength) {
       number = "0" + number;
@@ -90,34 +90,60 @@ AV.Cloud.define('Number2ID', function(request, response) {
   response.success(number);
 });
 
-AV.Cloud.afterSave('OrderTable', function(request){
+AV.Cloud.afterSave('OrderTable', function(request) {
   var orderTable = request.object;
-  var orderNo = orderTable.get("orderNo");
-  var orderSC = orderTable.get("orderSC");
-  var orderDC = orderTable.get("orderDC");
-  orderSC.fetch({
-    success:function(sc){
-      var scID = sc.get("scID");
-      orderDC.fetch({
-        success:function(dc){
-          var dcID = dc.get("dcID");
-          AV.Cloud.run('Number2ID', {number : orderNo, keepLength : 8}, {
-            success:function(num){
-              orderTable.set("orderID", scID + dcID + num);
-              orderTable.save();
-            }
-          });
-        }
-      });
-    }
-  });
+
+  var orderID = orderTable.get("orderID");
+  if (!orderID || orderID.length != 12) {//如果orderID为空，或不足12个字符，则进入下面的填充流程
+    console.log("订单：",orderTable.id, "，重新填充订单编号", orderID, "，原长度：", orderID.length);
+    var orderNo = orderTable.get("orderNo");
+    var orderSC = orderTable.get("orderSC");
+    var orderDC = orderTable.get("orderDC");
+
+    AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
+      success: function (num) {
+        orderSC.fetch({
+          success: function (sc) {
+            var scID = sc.get("scID");
+            orderDC.fetch({
+              success: function (dc) {
+                var dcID = dc.get("dcID");
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+              },
+              error: function (error) {
+                var dcID = "";
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+              }
+            });
+          },
+          error: function (error) {
+            var scID = "";
+            orderDC.fetch({
+              success: function (dc) {
+                var dcID = dc.get("dcID");
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+              },
+              error: function (error) {
+                var dcID = "";
+                orderTable.set("orderID", scID + dcID + num);
+                orderTable.save();
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 });
 
 AV.Cloud.define('OrderDivision', function(request, response){
   var originOrder = request.params.object;
   var originOrderSC = originOrder.get("orderSC");
   var OrderTable = AV.Object.extend("OrderTable");
-  if(~originOrderSC){
+  if(!originOrderSC){
     console.log("原始订单分拣中心字段为空");
     var orderArray = new Array();
     var orderDetail = originOrder.relation("orderDetail");
@@ -128,6 +154,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
           var firstOrderDetail = orderDetailList[0];
           var firstOrderSC = firstOrderDetail.get("orderSC");
           originOrder.set("orderSC", firstOrderSC);//原订单的分拣中心设为和首个订单明细相同
+          originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
           orderArray.push(originOrder);//将原订单添加到订单数组
           //遍历所有的订单明细,由于第一个明细会保留在原订单，所以从第二个明细开始遍
           for(var i=1; i<orderDetailList.length; i++){
@@ -162,6 +189,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
 
               var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
               orderDetailInNewOrder.add(pendingOrderDetail);
+              matchedOrder.increment('orderSumPrice', pendingOrderDetail.get('realPrice'));
             }
           }
 
@@ -182,9 +210,9 @@ AV.Cloud.define('OrderDivision', function(request, response){
       }
     })
   }
-  else{
+  else {
+    //已绑定分拣中心的订单，前端不允许再增加非该中心的产品，所以这里也不再做拆单
     console.log("原始订单分拣中心字段非空，放弃处理");
-    //统计价格
   }
 });
 
