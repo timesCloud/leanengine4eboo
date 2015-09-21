@@ -24,7 +24,7 @@
       <file leaf-file-name="package.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/package.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
+            <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
@@ -44,8 +44,8 @@
       <file leaf-file-name="cloud.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cloud.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5707071">
-              <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+            <state vertical-scroll-proportion="-0.4589372">
+              <caret line="184" column="66" selection-start-line="184" selection-start-column="66" selection-end-line="184" selection-end-column="66" />
               <folding />
             </state>
           </provider>
@@ -54,7 +54,7 @@
       <file leaf-file-name="app.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-23.333334">
+            <state vertical-scroll-proportion="0.0">
               <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="34" />
               <folding />
             </state>
@@ -74,7 +74,7 @@
       <file leaf-file-name="layout.jade" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/views/layout.jade">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.0">
+            <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
               <folding />
             </state>
@@ -84,7 +84,7 @@
       <file leaf-file-name="todos.jade" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/views/todos.jade">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.7777777">
+            <state vertical-scroll-proportion="0.0">
               <caret line="14" column="43" selection-start-line="14" selection-start-column="42" selection-end-line="14" selection-end-column="43" />
               <folding />
             </state>
@@ -94,12 +94,9 @@
       <file leaf-file-name="login.jade" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/views/users/login.jade">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-10.555555">
+            <state vertical-scroll-proportion="0.0">
               <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-              <folding>
-                <marker date="1442631828000" expanded="true" signature="24:510" placeholder="..." />
-                <marker date="1442631828000" expanded="true" signature="97:510" placeholder="..." />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -152,7 +149,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -255,6 +251,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -344,6 +341,70 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/app.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routes/todos.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/layout.jade">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/todos.jade">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="14" column="43" selection-start-line="14" selection-start-column="42" selection-end-line="14" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/views/users/login.jade">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/package.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cloud.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/package.json">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -378,12 +439,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/views/users/login.jade">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.555555">
+        <state vertical-scroll-proportion="0.0">
           <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-          <folding>
-            <marker date="1442631828000" expanded="true" signature="24:510" placeholder="..." />
-            <marker date="1442631828000" expanded="true" signature="97:510" placeholder="..." />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -397,7 +455,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-23.333334">
+        <state vertical-scroll-proportion="0.0">
           <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="34" />
           <folding />
         </state>
@@ -421,7 +479,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/views/todos.jade">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.7777777">
+        <state vertical-scroll-proportion="0.0">
           <caret line="14" column="43" selection-start-line="14" selection-start-column="42" selection-end-line="14" selection-end-column="43" />
           <folding />
         </state>
@@ -429,8 +487,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cloud.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5707071">
-          <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
+        <state vertical-scroll-proportion="-0.4589372">
+          <caret line="184" column="66" selection-start-line="184" selection-start-column="66" selection-end-line="184" selection-end-column="66" />
           <folding />
         </state>
       </provider>

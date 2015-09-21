@@ -212,12 +212,14 @@ AV.Cloud.define('OrderDivision', function(request, response){
             var order = orderArray[k];
             var orderNo = k + 1;
             console.log("保存订单：" + orderNo + "/" + orderArray.length);
+
+            order.save();
             AV.Cloud.run('GenerateOrderID', {object : order}, {
               success:function(object){
-                console.log("保存订单：" , orderNo , "/" , orderArray.length, "成功");
+                console.log("生成订单编号：" , orderNo , "/" , orderArray.length, "成功");
               },
               error:function(error) {
-                console.log("保存订单：" , orderNo , "/" , orderArray.length, "失败");
+                console.log("生成订单编号：" , orderNo , "/" , orderArray.length, "失败");
               }
             });
           }
