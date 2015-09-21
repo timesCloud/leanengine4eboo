@@ -197,7 +197,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
               var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
               orderDetailInNewOrder.add(pendingOrderDetail);
               var curSumPrice = matchedOrder.get("orderSumPrice");
-              if(!curSumPrice) curSumPrice = 0;
+              if(curSumPrice == undefined) curSumPrice = 0;
               console.log("累计前价格：",curSumPrice);
               matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
               console.log("累计后价格：",matchedOrder.get("orderSumPrice"));
@@ -404,20 +404,23 @@ AV.Cloud.afterUpdate('OrderDetail', function(request){
 });
 
 AV.Cloud.define('EditUser', function(request, response) {
-  //var req=request.object;
   var name = request.params.ListName;
   var key = request.params.ListKey;
   var id = request.params.UserID;
-
-  //response.success("更新成功！"+name[0]+key[0]+id);
-
+  var RoleID = request.params.RoleID;
   var user = AV.Object.extend("User");
   var query = new AV.Query(user);
   query.get(id, {
     success: function(user) {
-      console.log("------------");
       for (var i = 0; i < name.length; i++) {
-        console.log(name[i] + key[i]);
+        if(name[i]=='role'){
+          var CustomRole = AV.Object.extend("CustomRole");
+          var MyRole=new CustomRole();
+          MyRole.id=RoleID;
+          user.set('role',MyRole);
+          user.set('power',key[i]);
+          continue;
+        }
         user.set(name[i], key[i]);
       }
       user.save(null, {
@@ -426,13 +429,13 @@ AV.Cloud.define('EditUser', function(request, response) {
           response.success("更新成功！");
         },
         error: function(user, error) {
-          response.error("更新失败！");
+          response.error("更新失败！"+error.message);
         }
       });
     },
     error: function(user, error) {
       console.log('error');
-      response.error("更新失败");
+      response.error("更新失败"+error.message);
     }
 
   });
