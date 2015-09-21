@@ -143,6 +143,7 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
 });
 
 AV.Cloud.afterSave('OrderTable', function(request) {
+  console.log("进入OrderTable afterave");
   AV.Cloud.run('GenerateOrderID', {object : request.object}, {
     success:function(object){
 
