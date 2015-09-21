@@ -196,7 +196,9 @@ AV.Cloud.define('OrderDivision', function(request, response){
               var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
               orderDetailInNewOrder.add(pendingOrderDetail);
               var curSumPrice = matchedOrder.get("orderSumPrice");
+              console.log("累计前价格：",orderSumPrice);
               matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
+              console.log("累计后价格：",matchedOrder.get("orderSumPrice"));
             }
           }
 
