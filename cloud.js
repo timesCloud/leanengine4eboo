@@ -93,52 +93,46 @@ AV.Cloud.define('Number2ID', function(request, response) {
 AV.Cloud.afterSave('OrderTable', function(request) {
   var orderTable = request.object;
 
-  var orderID = orderTable.get("orderID");
-  var orderIDLength = 0;
-  if (orderID) orderIDLength = orderID.length;
-  if (!orderID || orderIDLength != 12) {//如果orderID为空，或不足12个字符，则进入下面的填充流程
-    console.log("订单：",orderTable.id, "，重新填充订单编号", orderID, "，原长度：", orderID.length);
-    var orderNo = orderTable.get("orderNo");
-    var orderSC = orderTable.get("orderSC");
-    var orderDC = orderTable.get("orderDC");
+  var orderNo = orderTable.get("orderNo");
+  var orderSC = orderTable.get("orderSC");
+  var orderDC = orderTable.get("orderDC");
 
-    AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
-      success: function (num) {
-        orderSC.fetch({
-          success: function (sc) {
-            var scID = sc.get("scID");
-            orderDC.fetch({
-              success: function (dc) {
-                var dcID = dc.get("dcID");
-                orderTable.set("orderID", scID + dcID + num);
-                orderTable.save();
-              },
-              error: function (error) {
-                var dcID = "";
-                orderTable.set("orderID", scID + dcID + num);
-                orderTable.save();
-              }
-            });
-          },
-          error: function (error) {
-            var scID = "";
-            orderDC.fetch({
-              success: function (dc) {
-                var dcID = dc.get("dcID");
-                orderTable.set("orderID", scID + dcID + num);
-                orderTable.save();
-              },
-              error: function (error) {
-                var dcID = "";
-                orderTable.set("orderID", scID + dcID + num);
-                orderTable.save();
-              }
-            });
-          }
-        });
-      }
-    });
-  }
+  AV.Cloud.run('Number2ID', {number: orderNo, keepLength: 6}, {
+    success: function (num) {
+      orderSC.fetch({
+        success: function (sc) {
+          var scID = sc.get("scID");
+          orderDC.fetch({
+            success: function (dc) {
+              var dcID = dc.get("dcID");
+              orderTable.set("orderID", scID + dcID + num);
+              orderTable.save();
+            },
+            error: function (error) {
+              var dcID = "";
+              orderTable.set("orderID", scID + dcID + num);
+              orderTable.save();
+            }
+          });
+        },
+        error: function (error) {
+          var scID = "";
+          orderDC.fetch({
+            success: function (dc) {
+              var dcID = dc.get("dcID");
+              orderTable.set("orderID", scID + dcID + num);
+              orderTable.save();
+            },
+            error: function (error) {
+              var dcID = "";
+              orderTable.set("orderID", scID + dcID + num);
+              orderTable.save();
+            }
+          });
+        }
+      });
+    }
+  });
 });
 
 AV.Cloud.define('OrderDivision', function(request, response){
