@@ -166,6 +166,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
           for(var i=1; i<orderDetailList.length; i++){
             var pendingOrderDetail = orderDetailList[i];
             var pendingOrderSC = pendingOrderDetail.get("orderSC");
+            console.log("分拣中心Oid对比：",pendingOrderSC.id,firstOrderSC.id);
             if (pendingOrderSC.id != firstOrderSC.id){//如果有和原订单分拣中心不同的订单明细
               orderDetail.remove(pendingOrderDetail);//将该订单明细从原订单中移除
               var matchedOrder = null;
