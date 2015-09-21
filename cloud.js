@@ -378,22 +378,22 @@ AV.Cloud.afterUpdate('OrderDetail', function(request){
   }
 });
 
-AV.Cloud.define('DoUser_test', function(request, response) {
-//var req=request.object;
-  var name=request.params.ListName;
-  var key=request.params.ListKey;
-  var id=request.params.UserID;
+AV.Cloud.define('EditUser', function(request, response) {
+  //var req=request.object;
+  var name = request.params.ListName;
+  var key = request.params.ListKey;
+  var id = request.params.UserID;
 
-//response.success("更新成功！"+name[0]+key[0]+id);
+  //response.success("更新成功！"+name[0]+key[0]+id);
 
-  var user=AV.Object.extend("User");
-  var query=new AV.Query(user);
-  query.get(id,{
-    success:function(user){
+  var user = AV.Object.extend("User");
+  var query = new AV.Query(user);
+  query.get(id, {
+    success: function(user) {
       console.log("------------");
-      for(var i=0;i<name.length;i++){
-        console.log(name[i]+key[i]);
-        user.set(name[i],key[i]);
+      for (var i = 0; i < name.length; i++) {
+        console.log(name[i] + key[i]);
+        user.set(name[i], key[i]);
       }
       user.save(null, {
         success: function(user) {
@@ -405,7 +405,7 @@ AV.Cloud.define('DoUser_test', function(request, response) {
         }
       });
     },
-    error:function(user,error){
+    error: function(user, error) {
       console.log('error');
       response.error("更新失败");
     }
@@ -414,7 +414,27 @@ AV.Cloud.define('DoUser_test', function(request, response) {
 });
 
 AV.Cloud.define('EnabledUser', function(request, response) {
-  var userid=request.parma;
+  var id = request.params.UserID;
+  var user = AV.Object.extend("User");
+  var query = new AV.Query(user);
+  query.get(id, {
+    success: function(user) {
+      user.set('enabled',false);
+      user.save(null, {
+        success: function(user) {
+          // 成功保存之后，执行其他逻辑.
+          response.success("删除成功！");
+        },
+        error: function(user, error) {
+          response.error("删除失败！");
+        }
+      });
+    },
+    error: function(user, error) {
+      console.log('error');
+      response.error("删除失败");
+    }
+  });
 });
 
 module.exports = AV.Cloud;
