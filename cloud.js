@@ -279,7 +279,6 @@ AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
   var lastCount = orderDetail.get("lastCount");
   var realUnit = orderDetail.get("realUnit");
   var lastRealUnit = orderDetail.get("lastRealUnit");
-  console.log("新订货数量和历史订货数量对比：",orderDetailProductCount,":",lastCount, "  ",realUnit, ":",lastRealUnit);
   //如果该订单明细的订货数量和档次修改前的订货数量不符，则表示有修改，需更新每日订货总量
   if (orderDetailProductCount != lastCount || realUnit != lastRealUnit) {
     var dt = orderDetail.get("orderTime");
@@ -296,7 +295,6 @@ AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
     query.first({
       success: function (object) {
         if (object) {//查到已存在的当日订货数据，则更新
-          console.log("查到已存在的当日订货数据");
 
           var dCountValue = orderDetailProductCount - lastCount;
           var dUnitValue = realUnit - lastRealUnit;
