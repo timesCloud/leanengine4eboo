@@ -235,7 +235,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
 
                   },
                   error:function(error) {
-
+                    console.log("Error: " + error.code + " " + error.message);
                   }
                 });
               }
@@ -254,7 +254,29 @@ AV.Cloud.define('OrderDivision', function(request, response){
   }
   else {
     //已绑定分拣中心的订单，前端不允许再增加非该中心的产品，所以这里也不再做拆单
-    console.log("原始订单分拣中心字段非空，放弃处理");
+    console.log("原始订单分拣中心字段非空，仅更新价格");
+    var orderLastSumPrice = originOrder.get("orderSumPrice");
+    var orderDetail = originOrder.relation("orderDetail");
+    orderDetail.query().find({
+      success: function (orderDetailList) {
+        if(orderDetailList.length > 0) {
+          var firstOrderDetail = orderDetailList[0];
+          originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
+          for(var i=1; i<orderDetailList.length; i++) {
+            var pendingOrderDetail = orderDetailList[i];
+            originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
+          }
+          var orderCurSumPrice = originOrder.get("orderSumPrice");
+          if(orderLastSumPrice != orderCurSumPrice) {
+            console.log("订单明细统计的总价发生变化",orderLastSumPrice, orderCurSumPrice);
+            originOrder.save();
+          }
+        }
+      },
+      error: function (error) {
+        console.log("Error: " + error.code + " " + error.message);
+      }
+    });
   }
 });
 
@@ -266,7 +288,7 @@ AV.Cloud.afterUpdate('OrderTable', function(request){
 
     },
     error:function(error){
-
+      console.log("Error: " + error.code + " " + error.message);
     }
   });
 });
