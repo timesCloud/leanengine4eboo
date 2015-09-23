@@ -2,6 +2,7 @@ var AV = require('leanengine');
 var _ = require('underscore');
 var moment = require('moment');
 var OrderSum4SC = AV.Object.extend("OrderSum4SC");
+var OrderTable = AV.Object.extend("OrderTable");
 
 /**
  * 一个简单的云代码方法
@@ -187,6 +188,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
                 newOrder.set("orderSC", pendingOrderSC);
                 newOrder.set("orderDC", originOrder.get("orderDC"));
                 newOrder.set("refunded", true);
+                newOrder.set('orderSumPrice', 0);
                 newOrder.set("orderDeliveryRoute", originOrder.get("orderDeliveryRoute"));
 
                 orderArray.push(newOrder);//将新订单放进订单数组
@@ -200,7 +202,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
               if(curSumPrice == undefined) curSumPrice = 0;
               matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
             }
-            else{
+            else{//无需从原单拆出的明细，则直接向
               originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
             }
           }
@@ -400,6 +402,38 @@ AV.Cloud.afterUpdate('OrderDetail', function(request){
       },
       error: function (err) {
         //处理调用失败
+      }
+    });
+  }
+});
+
+AV.Cloud.define('setOrderStatu', function(request, response) {
+  var orderOidArray = request.params.orderOids;
+  var statu = request.params.statu;
+  var successArray = new Array();
+  var failedArray = new Array();
+  for(var i = 0; i < orderOidArray.length; i++){
+    var oid = orderOidArray[i].objectId;
+    var query = new AV.Query(OrderTable);
+    query.get(oid, {
+      success: function(order){
+        order.set("orderStatus", statu);
+        order.save(null, {
+          success: function(order) {
+            successArray.push(order);
+            if(successArray.length + failedArray.length >= orderOidArray.length){
+              response.success({"success" : successArray, "failed" : failedArray});
+            }
+          },
+          error: function(error){
+            failedArray.add(error);
+            response.success({"success" : successArray, "failed" : failedArray});
+          }
+        });
+      },
+      error:function(error){
+        failedArray.add(error);
+        response.success({"success" : successArray, "failed" : failedArray});
       }
     });
   }
