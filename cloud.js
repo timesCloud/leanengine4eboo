@@ -91,6 +91,21 @@ AV.Cloud.define('Number2ID', function(request, response) {
   response.success(number);
 });
 
+AV.Cloud.beforeSave('OrderTable', function(request, response){
+  var order = request.object;
+  var store = order.get("orderStore");
+  store.fetch({
+    success: function(store){
+      order.set("orderDC", store.get("storeDC"));
+      order.set("orderDeliveryRoute", store.get("storeRoute"));
+      response.success(order);
+    },
+    error: function(error){
+      response.error(error);
+    }
+  })
+});
+
 AV.Cloud.define('GenerateOrderID', function(request, response){
   var orderTable = request.params.object;
 
