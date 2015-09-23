@@ -413,7 +413,7 @@ AV.Cloud.define('setOrderStatu', function(request, response) {
   var successArray = new Array();
   var failedArray = new Array();
   for(var i = 0; i < orderOidArray.length; i++){
-    var oid = orderOidArray[i].objectId;
+    var oid = orderOidArray[i];
     var query = new AV.Query(OrderTable);
     query.get(oid, {
       success: function(order){
