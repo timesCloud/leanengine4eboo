@@ -200,6 +200,9 @@ AV.Cloud.define('OrderDivision', function(request, response){
               if(curSumPrice == undefined) curSumPrice = 0;
               matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
             }
+            else{
+              originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
+            }
           }
 
           for(var k = 0; k < orderArray.length; k++){
