@@ -186,7 +186,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
           var firstOrderDetail = orderDetailList[0];
           var firstOrderSC = firstOrderDetail.get("orderSC");
           originOrder.set("orderSC", firstOrderSC);//原订单的分拣中心设为和首个订单明细相同
-          originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
+          //originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
           orderArray.push(originOrder);//将原订单添加到订单数组
           //遍历所有的订单明细,由于第一个明细会保留在原订单，所以从第二个明细开始遍
           //for(var i=1; i<orderDetailList.length; i++){
