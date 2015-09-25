@@ -277,7 +277,7 @@ AV.Cloud.define('OrderDivision', function(request, response){
             originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
           }
           var orderCurSumPrice = originOrder.get("orderSumPrice");
-          orderCurSumPrice = orderCurSumPrice.toFixed(2);
+          orderCurSumPrice = parseFloat(orderCurSumPrice.toFixed(2));
           originOrder.set("orderSumPrice", orderCurSumPrice);
           if(orderLastSumPrice != orderCurSumPrice) {
             console.log("订单明细统计的总价发生变化",orderLastSumPrice, orderCurSumPrice);
@@ -398,7 +398,8 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
         var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
         var realUnit = unitPerPackage * orderDetailProductCount;
         orderDetail.set("realUnit", realUnit);
-        orderDetail.set("realPrice", unitPrice * realUnit);
+        var realPrice = unitPrice * realUnit;
+        orderDetail.set("realPrice", parseFloat(realPrice.toFixed(2)));
         orderDetail.set("orderSC", pd.get("sortingCenter"));
 
         AV.Cloud.run('incrementOrderSum4SC', {object: orderDetail}, {
@@ -436,10 +437,12 @@ AV.Cloud.afterUpdate('OrderDetail', function(request){
               //第一次保存时，两个历史值lastCount和lastRealUnit都设置为0，之后在afterSave中就可以以正确的差值修改每日订货量
               orderDetail.set("lastCount", orderDetailProductCount);
               orderDetail.set("lastRealUnit", realUnit);
-              orderDetail.set("realPrice", unitPrice * realUnit);
+              var realPrice = unitPrice * realUnit;
+              orderDetail.set("realPrice", parseFloat(realPrice.toFixed(2)));
+              console.log(orderDetail.get("realPrice"));
               orderDetail.save(null, {
                 success: function (orderDetail) {
-                  console.log("orderDetail保存成功");
+                  console.log("orderDetail保存成功,",orderDetail.get("realPrice"));
                 },
                 error: function (orderDetail, error) {
 
