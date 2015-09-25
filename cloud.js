@@ -97,8 +97,18 @@ AV.Cloud.beforeSave('OrderTable', function(request, response){
   store.fetch({
     success: function(store){
       order.set("orderDC", store.get("storeDC"));
-      order.set("orderDeliveryRoute", store.get("storeRoute"));
-      response.success(order);
+      var storeRoute = store.get("storeRoute");
+      order.set("orderDeliveryRoute", storeRoute);
+      storeRoute.fetch({
+        success: function(storeRoute){
+          var deliverer = storeRoute.get("deliverer");
+          order.set("orderDelivery", deliverer);
+          response.success(order);
+        },
+        error: function(error){
+          response.error(error);
+        }
+      });
     },
     error: function(error){
       response.error(error);
@@ -179,48 +189,48 @@ AV.Cloud.define('OrderDivision', function(request, response){
           originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
           orderArray.push(originOrder);//将原订单添加到订单数组
           //遍历所有的订单明细,由于第一个明细会保留在原订单，所以从第二个明细开始遍
-          for(var i=1; i<orderDetailList.length; i++){
-            var pendingOrderDetail = orderDetailList[i];
-            var pendingOrderSC = pendingOrderDetail.get("orderSC");
-            console.log("分拣中心Oid对比：",pendingOrderSC.id,firstOrderSC.id);
-            if (pendingOrderSC.id != firstOrderSC.id){//如果有和原订单分拣中心不同的订单明细
-              orderDetail.remove(pendingOrderDetail);//将该订单明细从原订单中移除
-              var matchedOrder = null;
-              for(var j=0; j<orderArray.length; j++){//从订单数组中查询是否有分拣中心匹配的订单
-                var curOrder = orderArray[j];
-                var curOrderSC = curOrder.get("orderSC");
-                if(pendingOrderSC.get("objectId") == curOrderSC.get("objectId")){
-                  matchedOrder =curOrder;
-                  break;
-                }
-              }
-              if(~matchedOrder){//如果没有找到同分拣中心匹配的子订单，则新建一个
-                var newOrder = new OrderTable();
-                newOrder.set("orderStore", originOrder.get("orderStore"));
-                newOrder.set("orderTime", originOrder.get("orderTime"));
-                newOrder.set("orderUser", originOrder.get("orderUser"));
-                newOrder.set("orderStatus", originOrder.get("orderStatus"));
-                newOrder.set("orderSC", pendingOrderSC);
-                newOrder.set("orderDC", originOrder.get("orderDC"));
-                newOrder.set("refunded", true);
-                newOrder.set('orderSumPrice', 0);
-                newOrder.set("orderDeliveryRoute", originOrder.get("orderDeliveryRoute"));
-
-                orderArray.push(newOrder);//将新订单放进订单数组
-                matchedOrder = newOrder;
-              }
-
-              var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
-              orderDetailInNewOrder.add(pendingOrderDetail);
-              var curSumPrice = matchedOrder.get("orderSumPrice");
-              console.log("详情对象：", pendingOrderDetail.id, "curSumPrice现值：", curSumPrice);
-              if(curSumPrice == undefined) curSumPrice = 0;
-              matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
-            }
-            else{//无需从原单拆出的明细，则直接向
-              originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
-            }
-          }
+          //for(var i=1; i<orderDetailList.length; i++){
+          //  var pendingOrderDetail = orderDetailList[i];
+          //  var pendingOrderSC = pendingOrderDetail.get("orderSC");
+          //  console.log("分拣中心Oid对比：",pendingOrderSC.id,firstOrderSC.id);
+          //  if (pendingOrderSC.id != firstOrderSC.id){//如果有和原订单分拣中心不同的订单明细
+          //    orderDetail.remove(pendingOrderDetail);//将该订单明细从原订单中移除
+          //    var matchedOrder = null;
+          //    for(var j=0; j<orderArray.length; j++){//从订单数组中查询是否有分拣中心匹配的订单
+          //      var curOrder = orderArray[j];
+          //      var curOrderSC = curOrder.get("orderSC");
+          //      if(pendingOrderSC.get("objectId") == curOrderSC.get("objectId")){
+          //        matchedOrder =curOrder;
+          //        break;
+          //      }
+          //    }
+          //    if(~matchedOrder){//如果没有找到同分拣中心匹配的子订单，则新建一个
+          //      var newOrder = new OrderTable();
+          //      newOrder.set("orderStore", originOrder.get("orderStore"));
+          //      newOrder.set("orderTime", originOrder.get("orderTime"));
+          //      newOrder.set("orderUser", originOrder.get("orderUser"));
+          //      newOrder.set("orderStatus", originOrder.get("orderStatus"));
+          //      newOrder.set("orderSC", pendingOrderSC);
+          //      newOrder.set("orderDC", originOrder.get("orderDC"));
+          //      newOrder.set("refunded", true);
+          //      newOrder.set('orderSumPrice', 0);
+          //      newOrder.set("orderDeliveryRoute", originOrder.get("orderDeliveryRoute"));
+          //
+          //      orderArray.push(newOrder);//将新订单放进订单数组
+          //      matchedOrder = newOrder;
+          //    }
+          //
+          //    var orderDetailInNewOrder = matchedOrder.relation("orderDetail");
+          //    orderDetailInNewOrder.add(pendingOrderDetail);
+          //    var curSumPrice = matchedOrder.get("orderSumPrice");
+          //    console.log("详情对象：", pendingOrderDetail.id, "curSumPrice现值：", curSumPrice);
+          //    if(curSumPrice == undefined) curSumPrice = 0;
+          //    matchedOrder.set('orderSumPrice', curSumPrice + pendingOrderDetail.get('realPrice'));
+          //  }
+          //  else{//无需从原单拆出的明细，则直接向
+          //    originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
+          //  }
+          //}
 
           for(var k = 0; k < orderArray.length; k++){
             var order = orderArray[k];
@@ -267,6 +277,8 @@ AV.Cloud.define('OrderDivision', function(request, response){
             originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
           }
           var orderCurSumPrice = originOrder.get("orderSumPrice");
+          orderCurSumPrice = orderCurSumPrice.toFixed(2);
+          originOrder.set("orderSumPrice", orderCurSumPrice);
           if(orderLastSumPrice != orderCurSumPrice) {
             console.log("订单明细统计的总价发生变化",orderLastSumPrice, orderCurSumPrice);
             originOrder.save();
@@ -412,28 +424,30 @@ AV.Cloud.afterUpdate('OrderDetail', function(request){
   if (orderDetail) {
     AV.Cloud.run('incrementOrderSum4SC', {object: orderDetail}, {
       success: function (orderSum) {
-        console.log("订货数量更新成功");
-        var product = orderDetail.get("orderDetailProductName");
-        product.fetch({
-          success: function (pd) {
-            var unitPerPackage = pd.get("unitPerPackage");
-            var unitPrice = pd.get("unitPrice");
-            var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
-            var realUnit = orderDetail.get("realUnit");
-            //第一次保存时，两个历史值lastCount和lastRealUnit都设置为0，之后在afterSave中就可以以正确的差值修改每日订货量
-            orderDetail.set("lastCount", orderDetailProductCount);
-            orderDetail.set("lastRealUnit", realUnit);
-            orderDetail.set("realPrice", unitPrice * realUnit);
-            orderDetail.save(null, {
-              success: function (orderDetail) {
-                console.log("orderDetail保存成功");
-              },
-              error: function (orderDetail, error) {
+        //if(orderSum != null) {//即在incrementOrderSum4SC中发生了更新
+          console.log("订货数量更新成功");
+          var product = orderDetail.get("orderDetailProductName");
+          product.fetch({
+            success: function (pd) {
+              var unitPerPackage = pd.get("unitPerPackage");
+              var unitPrice = pd.get("unitPrice");
+              var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
+              var realUnit = orderDetail.get("realUnit");
+              //第一次保存时，两个历史值lastCount和lastRealUnit都设置为0，之后在afterSave中就可以以正确的差值修改每日订货量
+              orderDetail.set("lastCount", orderDetailProductCount);
+              orderDetail.set("lastRealUnit", realUnit);
+              orderDetail.set("realPrice", unitPrice * realUnit);
+              orderDetail.save(null, {
+                success: function (orderDetail) {
+                  console.log("orderDetail保存成功");
+                },
+                error: function (orderDetail, error) {
 
-              }
-            });
-          }
-        });
+                }
+              });
+            }
+          });
+        //}
         console.log("订单明细保存成功");
 
       },
@@ -475,6 +489,11 @@ AV.Cloud.define('setOrderStatu', function(request, response) {
     });
   }
 });
+
+//AV.Cloud.beforeSave("Store", function(request, response){
+//  var store = request.object;
+//
+//});
 
 AV.Cloud.define('EditUser', function(request, response) {
   var name = request.params.ListName;
