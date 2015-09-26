@@ -1,4 +1,4 @@
-var AV = require('leanengine');
+﻿var AV = require('leanengine');
 var _ = require('underscore');
 var moment = require('moment');
 var OrderSum4SC = AV.Object.extend("OrderSum4SC");
@@ -559,6 +559,7 @@ AV.Cloud.define('EditUser', function(request, response) {
   var key = request.params.ListKey;
   var id = request.params.UserID;
   var RoleID = request.params.RoleID;
+  var User = AV.Object.extend("User"); 	
   var query = new AV.Query(User);
   query.get(id, {
     success: function(user) {
