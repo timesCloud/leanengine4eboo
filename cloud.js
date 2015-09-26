@@ -496,6 +496,39 @@ AV.Cloud.define('setOrderStatu', function(request, response) {
   }
 });
 
+AV.Cloud.define('setOrderFieldValue', function(request, response) {
+  var orderOidArray = request.params.orderOids;
+  var field = request.params.field;
+  var value = request.params.value;
+  var successArray = new Array();
+  var failedArray = new Array();
+  for(var i = 0; i < orderOidArray.length; i++){
+    var oid = orderOidArray[i];
+    var query = new AV.Query(OrderTable);
+    query.get(oid, {
+      success: function(order){
+        order.set(field, value);
+        order.save(null, {
+          success: function(order) {
+            successArray.push(order);
+            if(successArray.length + failedArray.length >= orderOidArray.length){
+              response.success({"success" : successArray, "failed" : failedArray});
+            }
+          },
+          error: function(error){
+            failedArray.add(error);
+            response.success({"success" : successArray, "failed" : failedArray});
+          }
+        });
+      },
+      error:function(error){
+        failedArray.add(error);
+        response.success({"success" : successArray, "failed" : failedArray});
+      }
+    });
+  }
+});
+
 AV.Cloud.beforeSave("Store", function(request, response){
   var store = request.object;
   var queryDC = new AV.Query(DistributionCenter);
