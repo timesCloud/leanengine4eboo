@@ -3,6 +3,9 @@ var _ = require('underscore');
 var moment = require('moment');
 var OrderSum4SC = AV.Object.extend("OrderSum4SC");
 var OrderTable = AV.Object.extend("OrderTable");
+var DistributionCenter = AV.Object.extend("DistributionCenter");
+var DeliveryRoute = AV.Object.extend("DeliveryRoute");
+var User = AV.Object.extend("User");
 
 /**
  * 一个简单的云代码方法
@@ -493,18 +496,37 @@ AV.Cloud.define('setOrderStatu', function(request, response) {
   }
 });
 
-//AV.Cloud.beforeSave("Store", function(request, response){
-//  var store = request.object;
-//
-//});
+AV.Cloud.beforeSave("Store", function(request, response){
+  var store = request.object;
+  var queryDC = new AV.Query(DistributionCenter);
+  queryDC.get("55f23ce460b2b52c5403f0ce", {
+    success: function(dc){
+      store.set("storeDC", dc);
+      var queryDR = new AV.Query(DeliveryRoute);
+      queryDR.get("55f7d8b4ddb23dadf520f6fe", {
+        success: function(dr){
+          store.set("storeRoute", dr);
+          response.success();
+        },
+        error: function(error){
+          console.log("自动绑定配送站失败",error.message);
+          response.error(error);
+        }
+      });
+    },
+    error: function(error){
+      console.log("自动绑定配送站失败",error.message);
+      response.error(error);
+    }
+  });
+});
 
 AV.Cloud.define('EditUser', function(request, response) {
   var name = request.params.ListName;
   var key = request.params.ListKey;
   var id = request.params.UserID;
   var RoleID = request.params.RoleID;
-  var user = AV.Object.extend("User");
-  var query = new AV.Query(user);
+  var query = new AV.Query(User);
   query.get(id, {
     success: function(user) {
       for (var i = 0; i < name.length; i++) {
@@ -538,8 +560,7 @@ AV.Cloud.define('EditUser', function(request, response) {
 
 AV.Cloud.define('EnabledUser', function(request, response) {
   var id = request.params.UserID;
-  var user = AV.Object.extend("User");
-  var query = new AV.Query(user);
+  var query = new AV.Query(User);
   query.get(id, {
     success: function(user) {
       user.set('enabled',false);
