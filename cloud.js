@@ -267,31 +267,60 @@ AV.Cloud.define('OrderDivision', function(request, response){
   }
   else {
     //已绑定分拣中心的订单，前端不允许再增加非该中心的产品，所以这里也不再做拆单
-    console.log("原始订单分拣中心字段非空，仅更新价格");
-    var orderLastSumPrice = originOrder.get("orderSumPrice");
-    var orderDetail = originOrder.relation("orderDetail");
-    orderDetail.query().find({
-      success: function (orderDetailList) {
-        if(orderDetailList.length > 0) {
-          var firstOrderDetail = orderDetailList[0];
-          originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
-          for(var i=1; i<orderDetailList.length; i++) {
-            var pendingOrderDetail = orderDetailList[i];
-            originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
+    var canceled = originOrder.get("canceled");
+    var enabled = originOrder.get("enabled");
+    if (enabled) {
+      console.log("原始订单分拣中心字段非空，仅更新价格");
+      var orderLastSumPrice = originOrder.get("orderSumPrice");
+      var orderDetail = originOrder.relation("orderDetail");
+      orderDetail.query().find({
+        success: function (orderDetailList) {
+          if (orderDetailList.length > 0) {
+            var firstOrderDetail = orderDetailList[0];
+            ////为处理订单从取消/删除的状态改回正常状态时的订货量和价格
+            ////首先判断首条明细的实际订货量是否为0，如果为0则冲新计算
+            //var firstRealUnit = firstOrderDetail.get("realUnit");
+            //if (firstRealUnit == 0){
+            //
+            //}
+            originOrder.set("orderSumPrice", firstOrderDetail.get("realPrice"));//重新统计订单总价
+            for (var i = 1; i < orderDetailList.length; i++) {
+              var pendingOrderDetail = orderDetailList[i];
+              originOrder.increment("orderSumPrice", pendingOrderDetail.get('realPrice'));
+            }
+            var orderCurSumPrice = originOrder.get("orderSumPrice");
+            orderCurSumPrice = parseFloat(orderCurSumPrice.toFixed(2));
+            originOrder.set("orderSumPrice", orderCurSumPrice);
+            if (orderLastSumPrice != orderCurSumPrice) {
+              console.log("订单明细统计的总价发生变化", orderLastSumPrice, orderCurSumPrice);
+              originOrder.save();
+            }
           }
-          var orderCurSumPrice = originOrder.get("orderSumPrice");
-          orderCurSumPrice = parseFloat(orderCurSumPrice.toFixed(2));
-          originOrder.set("orderSumPrice", orderCurSumPrice);
-          if(orderLastSumPrice != orderCurSumPrice) {
-            console.log("订单明细统计的总价发生变化",orderLastSumPrice, orderCurSumPrice);
-            originOrder.save();
-          }
+        },
+        error: function (error) {
+          console.log("Error: " + error.code + " " + error.message);
         }
-      },
-      error: function (error) {
-        console.log("Error: " + error.code + " " + error.message);
-      }
-    });
+      });
+    }
+    else {
+      console.log("原始订单已被删除，将订单明细实际订货数修改为0");
+      var orderDetail = originOrder.relation("orderDetail");
+      orderDetail.query().find({
+        success:function(orderDetailList){
+          for(var i=0; i<orderDetailList.length; i++){
+            var pendingOrderDetail = orderDetailList[i];
+            var curRealUnit = pendingOrderDetail.get("realUnit");
+            if (curRealUnit != 0){
+              pendingOrderDetail.set("realUnit", 0);
+              pendingOrderDetail.save();
+            }
+          }
+        },
+        error: function (error) {
+          console.log("Error: " + error.code + " " + error.message);
+        }
+      });
+    }
   }
 });
 

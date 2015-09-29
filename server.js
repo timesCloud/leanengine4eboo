@@ -6,6 +6,8 @@ var MASTER_KEY = process.env.LC_APP_MASTER_KEY;
 
 AV.initialize(APP_ID, APP_KEY, MASTER_KEY);
 
+AV.Cloud.useMasterKey();
+
 var app = require('./app');
 
 // 端口一定要从环境变量 `LC_APP_PORT` 中获取。
