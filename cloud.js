@@ -3,6 +3,7 @@ var _ = require('underscore');
 var moment = require('moment');
 var OrderSum4SC = AV.Object.extend("OrderSum4SC");
 var OrderTable = AV.Object.extend("OrderTable");
+var OrderDetail = AV.Object.extend("OrderDetail");
 var DistributionCenter = AV.Object.extend("DistributionCenter");
 var DeliveryRoute = AV.Object.extend("DeliveryRoute");
 var User = AV.Object.extend("User");
@@ -579,6 +580,61 @@ AV.Cloud.beforeSave("Store", function(request, response){
     error: function(error){
       console.log("自动绑定配送站失败",error.message);
       response.error(error);
+    }
+  });
+});
+
+AV.Cloud.define("AddOrder", function(request, response){
+  var order = request.params.order;
+  var detailList = request.params.detailList;
+  var savedDetailCount = 0;
+  var orderDetailRelation = order.relation("orderDetail");
+  for (var i = 0; i < detailList.length; i++){
+    var orderDetail = detailList[i];
+    orderDetail.save(null, {
+      success: function(orderDetail){
+        orderDetailRelation.add(orderDetail);
+        if(++savedDetailCount >= detailList.length){
+          order.save(null, {
+            success: function(order){
+              response.success(order);
+            },
+            error: function(order, error){
+              response.error("订单保存失败："+error.message);
+            }
+          });
+        }
+      },
+      error: function(orderDetail, error){
+        response.error("订单明细保存失败："+error.message);
+      }
+    });
+  }
+  response.success();
+});
+
+AV.Cloud.define("PrintOrder", function(request, response){
+  var oid = request.params.oid;
+  var query = new AV.Query(OrderTable);
+  query.get(oid, {
+    success: function(order){
+      response.success(order);
+    },
+    error: function(order, error){
+      response.error();
+    }
+  });
+});
+
+AV.Cloud.define("PrintOrderDetail", function(request, response){
+  var oid = request.params.oid;
+  var query = new AV.Query(OrderDetail);
+  query.get(oid, {
+    success: function(orderDetail){
+      response.success(orderDetail);
+    },
+    error: function(orderDetail, error){
+      response.error();
     }
   });
 });
