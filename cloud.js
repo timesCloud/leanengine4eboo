@@ -585,34 +585,35 @@ AV.Cloud.beforeSave("Store", function(request, response){
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
-  console.log("开始添加Order");
-  var order = request.params.order;
-  var detailList = request.params.detailList;
-  console.log(order);
-  console.log(detailList);
-  var savedDetailCount = 0;
-  var orderDetailRelation = order.relation("orderDetail");
-  for (var i = 0; i < detailList.length; i++){
-    var orderDetail = detailList[i];
-    orderDetail.save(null, {
-      success: function(orderDetail){
-        orderDetailRelation.add(orderDetail);
-        if(++savedDetailCount >= detailList.length){
-          order.save(null, {
-            success: function(order){
-              response.success(order);
-            },
-            error: function(order, error){
-              response.error("订单保存失败："+error.message);
-            }
-          });
-        }
-      },
-      error: function(orderDetail, error){
-        response.error("订单明细保存失败："+error.message);
-      }
-    });
-  }
+  console.log("进入AddOrder");
+  response.success("丢了");
+  //var order = request.params.order;
+  //var detailList = request.params.detailList;
+  //console.log(order);
+  //console.log(detailList);
+  //var savedDetailCount = 0;
+  //var orderDetailRelation = order.relation("orderDetail");
+  //for (var i = 0; i < detailList.length; i++){
+  //  var orderDetail = detailList[i];
+  //  orderDetail.save(null, {
+  //    success: function(orderDetail){
+  //      orderDetailRelation.add(orderDetail);
+  //      if(++savedDetailCount >= detailList.length){
+  //        order.save(null, {
+  //          success: function(order){
+  //            response.success(order);
+  //          },
+  //          error: function(order, error){
+  //            response.error("订单保存失败："+error.message);
+  //          }
+  //        });
+  //      }
+  //    },
+  //    error: function(orderDetail, error){
+  //      response.error("订单明细保存失败："+error.message);
+  //    }
+  //  });
+  //}
   //response.success();
 });
 
