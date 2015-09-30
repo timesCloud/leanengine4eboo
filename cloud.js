@@ -111,7 +111,6 @@ AV.Cloud.define("AddOrder", function(request, response){
 
   var savedDetailCount = 0;
   var orderDetailRelation = order.relation("orderDetail");
-  console.log(detailList);
   for (var i = 0; i < detailList.length; i++){
     var orderDetailInfo = detailList[i];
     var orderDetail = new OrderDetail();
@@ -125,6 +124,8 @@ AV.Cloud.define("AddOrder", function(request, response){
         order.increment("orderSumPrice", orderDetail.get('realPrice'));
         if(++savedDetailCount >= detailList.length){
           order.set("orderSC", orderDetail.get("orderSC"));
+          //order.set("orderTime", orderDetail.createdAt);
+          //console.log("最终订单时间", orderDetail.createdAt);
           order.save(null, {
             success: function(order){
               response.success(order);
@@ -171,7 +172,7 @@ AV.Cloud.afterSave('OrderTable', function(request){
   var order = request.object;
   AV.Cloud.run('GenerateOrderID', {object : order}, {
     success:function(object){
-      order.set("orderTime", order.get("createdAt"));
+      order.set("orderTime", order.createdAt);
       order.save();
     },
     error:function(error) {
@@ -231,7 +232,13 @@ AV.Cloud.define('GenerateOrderID', function(request, response){
     });
   }
   else{
-    console.log("编号生成失败：", orderNo, orderSC, orderDC, !orderID)
+    if(!orderID){
+      console.log("编号生成失败：", orderNo);
+      response.error();
+    }
+    else{
+      response.success();
+    }
   }
 });
 
