@@ -95,6 +95,56 @@ AV.Cloud.define('Number2ID', function(request, response) {
   response.success(number);
 });
 
+AV.Cloud.define("AddOrder", function(request, response){
+  console.log("进入AddOrder");
+  var storeOid = request.params.storeOid;
+  var userOid = request.params.userOid;
+  var orderTime = request.params.orderTime;
+  var remark = request.params.remark;
+  var detailList = request.params.detailList;
+
+  var order = new OrderTable();
+  var store = AV.Object.createWithoutData("Store", storeOid);
+  order.set("orderStore", store);
+  var user = AV.Object.createWithoutData("_User", userOid);
+  order.set("orderUser", user);
+  order.set("orderTime", orderTime);
+  order.set("remark", remark);
+  order.set("orderSumPrice", 0);
+
+  var savedDetailCount = 0;
+  var orderDetailRelation = order.relation("orderDetail");
+  console.log(detailList);
+  for (var i = 0; i < detailList.length; i++){
+    var orderDetailInfo = detailList[i];
+    var orderDetail = new OrderDetail();
+    var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
+    orderDetail.set("orderDetailProductName", product);
+    orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
+    orderDetail.fetchWhenSave(true);
+    orderDetail.save(null, {
+      success: function(orderDetail){
+        orderDetailRelation.add(orderDetail);
+        order.increment("orderSumPrice", orderDetail.get('realPrice'));
+        if(++savedDetailCount >= detailList.length){
+          order.set("orderSC", orderDetail.get("orderSC"));
+          order.save(null, {
+            success: function(order){
+              response.success(order);
+            },
+            error: function(order, error){
+              response.error("订单保存失败："+error.message);
+            }
+          });
+        }
+      },
+      error: function(orderDetail, error){
+        response.error("订单明细保存失败："+error.message);
+      }
+    });
+  }
+});
+
 AV.Cloud.beforeSave('OrderTable', function(request, response){
   var order = request.object;
   var store = order.get("orderStore");
@@ -118,6 +168,18 @@ AV.Cloud.beforeSave('OrderTable', function(request, response){
       response.error(error);
     }
   })
+});
+
+AV.Cloud.afterSave('OrderTable', function(request){
+  var order = request.object;
+  AV.Cloud.run('GenerateOrderID', {object : order}, {
+    success:function(object){
+      order.save();
+    },
+    error:function(error) {
+      console.log("Error: " + error.code + " " + error.message);
+    }
+  });
 });
 
 AV.Cloud.define('GenerateOrderID', function(request, response){
@@ -586,35 +648,52 @@ AV.Cloud.beforeSave("Store", function(request, response){
 
 AV.Cloud.define("AddOrder", function(request, response){
   console.log("进入AddOrder");
-  response.success("丢了");
-  //var order = request.params.order;
-  //var detailList = request.params.detailList;
-  //console.log(order);
-  //console.log(detailList);
-  //var savedDetailCount = 0;
-  //var orderDetailRelation = order.relation("orderDetail");
-  //for (var i = 0; i < detailList.length; i++){
-  //  var orderDetail = detailList[i];
-  //  orderDetail.save(null, {
-  //    success: function(orderDetail){
-  //      orderDetailRelation.add(orderDetail);
-  //      if(++savedDetailCount >= detailList.length){
-  //        order.save(null, {
-  //          success: function(order){
-  //            response.success(order);
-  //          },
-  //          error: function(order, error){
-  //            response.error("订单保存失败："+error.message);
-  //          }
-  //        });
-  //      }
-  //    },
-  //    error: function(orderDetail, error){
-  //      response.error("订单明细保存失败："+error.message);
-  //    }
-  //  });
-  //}
-  //response.success();
+  var storeOid = request.params.storeOid;
+  var userOid = request.params.userOid;
+  var orderTime = request.params.orderTime;
+  var remark = request.params.remark;
+  var detailList = request.params.detailList;
+
+  var order = new OrderTable();
+  var store = AV.Object.createWithoutData("Store", storeOid);
+  order.set("orderStore", store);
+  var user = AV.Object.createWithoutData("_User", userOid);
+  order.set("orderUser", user);
+  order.set("orderTime", orderTime);
+  order.set("remark", remark);
+  order.set("orderSumPrice", 0);
+
+  var savedDetailCount = 0;
+  var orderDetailRelation = order.relation("orderDetail");
+  console.log(detailList);
+  for (var i = 0; i < detailList.length; i++){
+    var orderDetailInfo = detailList[i];
+    var orderDetail = new OrderDetail();
+    var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
+    orderDetail.set("orderDetailProductName", product);
+    orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
+    orderDetail.fetchWhenSave(true);
+    orderDetail.save(null, {
+      success: function(orderDetail){
+        orderDetailRelation.add(orderDetail);
+        order.increment("orderSumPrice", orderDetail.get('realPrice'));
+        if(++savedDetailCount >= detailList.length){
+          order.set("orderSC", orderDetail.get("orderSC"));
+          order.save(null, {
+            success: function(order){
+              response.success(order);
+            },
+            error: function(order, error){
+              response.error("订单保存失败："+error.message);
+            }
+          });
+        }
+      },
+      error: function(orderDetail, error){
+        response.error("订单明细保存失败："+error.message);
+      }
+    });
+  }
 });
 
 AV.Cloud.define("PrintOrder", function(request, response){
