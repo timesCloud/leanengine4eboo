@@ -96,10 +96,8 @@ AV.Cloud.define('Number2ID', function(request, response) {
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
-  //console.log("进入AddOrder");
   var storeOid = request.params.storeOid;
   var userOid = request.params.userOid;
-  var orderTime = new Date();
   var remark = request.params.remark;
   var detailList = request.params.detailList;
 
@@ -108,14 +106,12 @@ AV.Cloud.define("AddOrder", function(request, response){
   order.set("orderStore", store);
   var user = AV.Object.createWithoutData("_User", userOid);
   order.set("orderUser", user);
-  order.set("orderTime", orderTime);
   order.set("remark", remark);
   order.set("orderSumPrice", 0);
-  console.log("当前时间", orderTime);
 
   var savedDetailCount = 0;
   var orderDetailRelation = order.relation("orderDetail");
-  //console.log(detailList);
+  console.log(detailList);
   for (var i = 0; i < detailList.length; i++){
     var orderDetailInfo = detailList[i];
     var orderDetail = new OrderDetail();
@@ -175,6 +171,7 @@ AV.Cloud.afterSave('OrderTable', function(request){
   var order = request.object;
   AV.Cloud.run('GenerateOrderID', {object : order}, {
     success:function(object){
+      order.set("orderTime", order.get("createdAt"));
       order.save();
     },
     error:function(error) {
