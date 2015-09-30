@@ -96,10 +96,10 @@ AV.Cloud.define('Number2ID', function(request, response) {
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
-  console.log("进入AddOrder");
+  //console.log("进入AddOrder");
   var storeOid = request.params.storeOid;
   var userOid = request.params.userOid;
-  var orderTime = request.params.orderTime;
+  var orderTime = new Date();
   var remark = request.params.remark;
   var detailList = request.params.detailList;
 
@@ -111,10 +111,11 @@ AV.Cloud.define("AddOrder", function(request, response){
   order.set("orderTime", orderTime);
   order.set("remark", remark);
   order.set("orderSumPrice", 0);
+  console.log("当前时间", orderTime);
 
   var savedDetailCount = 0;
   var orderDetailRelation = order.relation("orderDetail");
-  console.log(detailList);
+  //console.log(detailList);
   for (var i = 0; i < detailList.length; i++){
     var orderDetailInfo = detailList[i];
     var orderDetail = new OrderDetail();
@@ -431,7 +432,7 @@ AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
   //如果该订单明细的订货数量和档次修改前的订货数量不符，则表示有修改，需更新每日订货总量
   if (orderDetailProductCount != lastCount || realUnit != lastRealUnit) {
     var dt = orderDetail.get("orderTime");
-    var todayStart = moment(dt).startOf('day');
+    var todayStart = moment(dt).startOf('day');moment
     var todayEnd = moment(dt).endOf('day');
     var orderSC = orderDetail.get("orderSC");
     var product = orderDetail.get("orderDetailProductName");
