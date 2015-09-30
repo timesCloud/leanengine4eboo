@@ -449,7 +449,7 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
         });
       }
     });
-    console.log("订单明细保存成功");
+    //console.log("订单明细保存成功");
   }
 });
 
@@ -585,8 +585,11 @@ AV.Cloud.beforeSave("Store", function(request, response){
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
+  console.log("开始添加Order");
   var order = request.params.order;
   var detailList = request.params.detailList;
+  console.log(order);
+  console.log(detailList);
   var savedDetailCount = 0;
   var orderDetailRelation = order.relation("orderDetail");
   for (var i = 0; i < detailList.length; i++){
@@ -610,7 +613,7 @@ AV.Cloud.define("AddOrder", function(request, response){
       }
     });
   }
-  response.success();
+  //response.success();
 });
 
 AV.Cloud.define("PrintOrder", function(request, response){
