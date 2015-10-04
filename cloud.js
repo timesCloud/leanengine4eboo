@@ -80,26 +80,12 @@ AV.Cloud.afterSave('BatchTable', function(request){
   });
 });
 
-AV.Cloud.define('Number2ID', function(request, response) {
-  var number = request.params.number;
-  var keepLength = request.params.keepLength;
-  var len = number.toString().length;
-  if (len > keepLength) {
-    number = number % Math.pow(10,keepLength);//截取低6位
-  } else {
-    while (len < keepLength) {
-      number = "0" + number;
-      len++;
-    }
-  }
-  response.success(number);
-});
-
 AV.Cloud.define("AddOrder", function(request, response){
   var storeOid = request.params.storeOid;
   var userOid = request.params.userOid;
   var remark = request.params.remark;
   var detailList = request.params.detailList;
+  var orderTime = moment().toDate();
 
   var order = new OrderTable();
   var store = AV.Object.createWithoutData("Store", storeOid);
@@ -108,6 +94,7 @@ AV.Cloud.define("AddOrder", function(request, response){
   order.set("orderUser", user);
   order.set("remark", remark);
   order.set("orderSumPrice", 0);
+  order.set("orderTime", orderTime);
 
   var savedDetailCount = 0;
   var orderDetailRelation = order.relation("orderDetail");
@@ -117,6 +104,7 @@ AV.Cloud.define("AddOrder", function(request, response){
     var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
     orderDetail.set("orderDetailProductName", product);
     orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
+    orderDetail.set("orderTime", orderTime);
     orderDetail.fetchWhenSave(true);
     orderDetail.save(null, {
       success: function(orderDetail){
@@ -126,6 +114,7 @@ AV.Cloud.define("AddOrder", function(request, response){
           order.set("orderSC", orderDetail.get("orderSC"));
           //order.set("orderTime", orderDetail.createdAt);
           //console.log("最终订单时间", orderDetail.createdAt);
+          console.log(order);
           order.save(null, {
             success: function(order){
               response.success(order);
@@ -141,6 +130,23 @@ AV.Cloud.define("AddOrder", function(request, response){
       }
     });
   }
+});
+
+//AV.Cloud.define("")
+
+AV.Cloud.define('Number2ID', function(request, response) {
+  var number = request.params.number;
+  var keepLength = request.params.keepLength;
+  var len = number.toString().length;
+  if (len > keepLength) {
+    number = number % Math.pow(10,keepLength);//截取低6位
+  } else {
+    while (len < keepLength) {
+      number = "0" + number;
+      len++;
+    }
+  }
+  response.success(number);
 });
 
 AV.Cloud.beforeSave('OrderTable', function(request, response){
@@ -436,7 +442,7 @@ AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
   //如果该订单明细的订货数量和档次修改前的订货数量不符，则表示有修改，需更新每日订货总量
   if (orderDetailProductCount != lastCount || realUnit != lastRealUnit) {
     var dt = orderDetail.get("orderTime");
-    var todayStart = moment(dt).startOf('day');moment
+    var todayStart = moment(dt).startOf('day');
     var todayEnd = moment(dt).endOf('day');
     var orderSC = orderDetail.get("orderSC");
     var product = orderDetail.get("orderDetailProductName");
@@ -626,6 +632,93 @@ AV.Cloud.define('setOrderFieldValue', function(request, response) {
   }
 });
 
+AV.Cloud.define('SetOrderEnableNCancel', function(request, response){
+  var orderOid = request.params.orderOid;
+  var enabled = request.params.enabled;
+  var canceled = request.params.canceled;
+  var query = new AV.Query(OrderTable);
+  query.get(orderOid, {
+    success: function(order){
+      var alreadyCanceled = order.get("canceled");//先缓存当前是否取消的状态
+      order.set("enabled", (enabled == 'True' || enabled == 'true'));
+      if(enabled)
+        order.set("canceled", (canceled == 'True' || canceled == 'true'));
+      else//如果订单被删除（enabled为false），那么订单必须设置为取消（canceled为true）
+        order.set("canceled", true);
+
+      var curCanceled = order.get("canceled");
+      console.log(alreadyCanceled, curCanceled);
+      //如果之前是正常状态，现在设置为取消，则需要将订单明细全部取消
+      //反之，如果之前已取消，现在设置为正常，则需要将订单明细全部恢复
+      if((!alreadyCanceled && curCanceled) || (alreadyCanceled && !curCanceled)){
+        var detailRelation = order.relation("orderDetail");
+        detailRelation.query().find({
+          success:function(detailList){
+            var processedDetailCount = 0;
+            for(var j = 0; j < detailList.length; j++){
+              var orderDetail = detailList[j];
+              orderDetail.set("canceled", curCanceled);
+              orderDetail.save(null,{
+                success:function(orderDetail){
+                  if(++processedDetailCount >= detailList.length){//此段代码和下方orderDetail保存失败内的代码相同
+                    order.save(null, {
+                      success: function(order) {
+                        response.success(order);
+                      },
+                      error: function(error){
+                        response.error(error);
+                      }
+                    });
+                  }
+                },
+                error:function(error){
+                  response.error(error);
+                }
+              });
+            }
+          },
+          error:function(error){
+            response.error(error);
+          }
+        });
+      }
+      else{
+        response.success(order);
+      }
+    },
+    error:function(error){
+      response.error(error);
+    }
+  });
+});
+
+AV.Cloud.define('BatchSetOrderEnableNCancel', function(request, response) {
+  var orderOidArray = request.params.orderOids;
+  var enabled = request.params.enabled;
+  var canceled = request.params.canceled;
+  var successArray = new Array();
+  var failedArray = new Array();
+  for(var i = 0; i < orderOidArray.length; i++){
+    var oid = orderOidArray[i];
+    AV.Cloud.run("SetOrderEnableNCancel", {orderOid:oid, enabled:enabled, canceled:canceled}, {
+      success:function(order){
+        successArray.push(order);
+        console.log("成功");
+        if(successArray.length + failedArray.length >= orderOidArray.length){
+          response.success({"success" : successArray, "failed" : failedArray});
+        }
+      },
+      error:function(error){
+        failedArray.push(error);
+        console.log("失败");
+        if(successArray.length + failedArray.length >= orderOidArray.length){
+          response.error({"success" : successArray, "failed" : failedArray});
+        }
+      }
+    });
+  }
+});
+
 AV.Cloud.beforeSave("Store", function(request, response){
   var store = request.object;
   var queryDC = new AV.Query(DistributionCenter);
@@ -649,56 +742,6 @@ AV.Cloud.beforeSave("Store", function(request, response){
       response.error(error);
     }
   });
-});
-
-AV.Cloud.define("AddOrder", function(request, response){
-  console.log("进入AddOrder");
-  var storeOid = request.params.storeOid;
-  var userOid = request.params.userOid;
-  var orderTime = request.params.orderTime;
-  var remark = request.params.remark;
-  var detailList = request.params.detailList;
-
-  var order = new OrderTable();
-  var store = AV.Object.createWithoutData("Store", storeOid);
-  order.set("orderStore", store);
-  var user = AV.Object.createWithoutData("_User", userOid);
-  order.set("orderUser", user);
-  order.set("orderTime", orderTime);
-  order.set("remark", remark);
-  order.set("orderSumPrice", 0);
-
-  var savedDetailCount = 0;
-  var orderDetailRelation = order.relation("orderDetail");
-  console.log(detailList);
-  for (var i = 0; i < detailList.length; i++){
-    var orderDetailInfo = detailList[i];
-    var orderDetail = new OrderDetail();
-    var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
-    orderDetail.set("orderDetailProductName", product);
-    orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
-    orderDetail.fetchWhenSave(true);
-    orderDetail.save(null, {
-      success: function(orderDetail){
-        orderDetailRelation.add(orderDetail);
-        order.increment("orderSumPrice", orderDetail.get('realPrice'));
-        if(++savedDetailCount >= detailList.length){
-          order.set("orderSC", orderDetail.get("orderSC"));
-          order.save(null, {
-            success: function(order){
-              response.success(order);
-            },
-            error: function(order, error){
-              response.error("订单保存失败："+error.message);
-            }
-          });
-        }
-      },
-      error: function(orderDetail, error){
-        response.error("订单明细保存失败："+error.message);
-      }
-    });
-  }
 });
 
 AV.Cloud.define("PrintOrder", function(request, response){
@@ -784,6 +827,45 @@ AV.Cloud.define('EnabledUser', function(request, response) {
     error: function(user, error) {
       console.log('error');
       response.error("删除失败");
+    }
+  });
+});
+
+AV.Cloud.define('RefreshOrderDetailStatInOneDay', function(request, response){
+  var ds = request.params.dateStart;
+  var de = request.params.dateEnd;
+  var dateStart = moment(ds);
+  var dateEnd = moment(de);
+
+  var query = new AV.Query(OrderTable);
+  query.equalTo("canceled", false);
+  query.equalTo("enabled", true);
+  query.greaterThanOrEqualTo("date", dateStart.toDate());
+  query.lessThanOrEqualTo("date", dateEnd.toDate());
+  query.limit(1000);
+  query.find({
+    success: function(results) {
+      var orderCount = results.length;
+      var orderProcessedCount = 0;
+      for(var i = 0; i < results.length; i++){
+        var order = results[i];
+        var orderDetailRelation = order.relation("orderDetail");
+        orderDetailRelation.query().find({
+          success: function(orderDetailList){
+            for(var i = i; i < orderDetailList.length; i++){
+              var orderDetail = orderDetailList[i];
+              var product
+              var orderSum = new Object();
+            }
+          },
+          error: function(error){
+
+          }
+        });
+      }
+    },
+    error: function(error){
+      console.log('error');
     }
   });
 });
