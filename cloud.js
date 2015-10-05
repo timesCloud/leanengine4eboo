@@ -87,48 +87,72 @@ AV.Cloud.define("AddOrder", function(request, response){
   var detailList = request.params.detailList;
   var orderTime = moment().toDate();
 
-  var order = new OrderTable();
-  var store = AV.Object.createWithoutData("Store", storeOid);
-  order.set("orderStore", store);
-  var user = AV.Object.createWithoutData("_User", userOid);
-  order.set("orderUser", user);
-  order.set("remark", remark);
-  order.set("orderSumPrice", 0);
-  order.set("orderTime", orderTime);
+  if(storeOid && userOid && detailList.length > 0) {
+    var order = new OrderTable();
+    var store = AV.Object.createWithoutData("Store", storeOid);
+    order.set("orderStore", store);
+    var user = AV.Object.createWithoutData("_User", userOid);
+    order.set("orderUser", user);
+    order.set("remark", remark);
+    order.set("orderSumPrice", 0);
+    order.set("orderTime", orderTime);
 
-  var savedDetailCount = 0;
-  var orderDetailRelation = order.relation("orderDetail");
-  for (var i = 0; i < detailList.length; i++){
-    var orderDetailInfo = detailList[i];
-    var orderDetail = new OrderDetail();
-    var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
-    orderDetail.set("orderDetailProductName", product);
-    orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
-    orderDetail.set("orderTime", orderTime);
-    orderDetail.fetchWhenSave(true);
-    orderDetail.save(null, {
-      success: function(orderDetail){
-        orderDetailRelation.add(orderDetail);
-        order.increment("orderSumPrice", orderDetail.get('realPrice'));
-        if(++savedDetailCount >= detailList.length){
-          order.set("orderSC", orderDetail.get("orderSC"));
-          //order.set("orderTime", orderDetail.createdAt);
-          //console.log("最终订单时间", orderDetail.createdAt);
-          console.log(order);
-          order.save(null, {
-            success: function(order){
-              response.success(order);
-            },
-            error: function(order, error){
-              response.error("订单保存失败："+error.message);
-            }
-          });
-        }
+    store.fetch({//首先fetch店铺，以防店铺参数错误导致明细保存完成后订单保存失败
+      success: function (store) {
+        order.set("orderDC", store.get("storeDC"));
+        var storeRoute = store.get("storeRoute");
+        order.set("orderDeliveryRoute", storeRoute);
+        storeRoute.fetch({
+          success: function (storeRoute) {
+            var deliverer = storeRoute.get("deliverer");
+            order.set("orderDelivery", deliverer);
+
+            //store相关参数设置完毕，保存订单明细
+            var savedDetailCount = 0;
+            var orderDetailRelation = order.relation("orderDetail");
+            for (var i = 0; i < detailList.length; i++) {
+              var orderDetailInfo = detailList[i];
+              var orderDetail = new OrderDetail();
+              var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
+              orderDetail.set("orderDetailProductName", product);
+              orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
+              orderDetail.set("orderTime", orderTime);
+              orderDetail.fetchWhenSave(true);
+              orderDetail.save(null, {
+                success: function (orderDetail) {
+                  orderDetailRelation.add(orderDetail);
+                  order.increment("orderSumPrice", orderDetail.get('realPrice'));
+                  if (++savedDetailCount >= detailList.length) {
+                    //订单明细全部完成保存后，保存订单
+                    order.set("orderSC", orderDetail.get("orderSC"));//将order的分拣中心设置为最后一个明细关联的分拣中心
+                    order.save(null, {
+                      success: function (order) {
+                        response.success(order);
+                      },
+                      error: function (order, error) {
+                        response.error("订单最终保存失败：" + error);
+                      }
+                    });//订单保存结束
+                  }
+                },
+                error: function (orderDetail, error) {
+                  response.error("订单明细保存失败：" + error);
+                }
+              });
+            }//订单明细保存结束
+
+          },
+          error: function (error) {
+            response.error("配送路线fetch失败，订单保存失败：" + error);
+          }
+        });
       },
-      error: function(orderDetail, error){
-        response.error("订单明细保存失败："+error.message);
+      error: function (error) {
+        response.error("店铺fetch失败订单保存失败：" + error);
       }
     });
+  }else{
+    response.error("调用AddOrder时参数传入错误");
   }
 });
 
@@ -150,6 +174,7 @@ AV.Cloud.define('Number2ID', function(request, response) {
 });
 
 AV.Cloud.beforeSave('OrderTable', function(request, response){
+  //订单设置配送中心、配送线路、配送员的代码已经移到AddOrder中，待第一版APP停用后下列代码全部删除
   var order = request.object;
   var store = order.get("orderStore");
   store.fetch({
@@ -178,8 +203,7 @@ AV.Cloud.afterSave('OrderTable', function(request){
   var order = request.object;
   AV.Cloud.run('GenerateOrderID', {object : order}, {
     success:function(object){
-      order.set("orderTime", order.createdAt);
-      order.save();
+      //console.log("");
     },
     error:function(error) {
       console.log("Error: " + error.code + " " + error.message);
@@ -647,7 +671,6 @@ AV.Cloud.define('SetOrderEnableNCancel', function(request, response){
         order.set("canceled", true);
 
       var curCanceled = order.get("canceled");
-      console.log(alreadyCanceled, curCanceled);
       //如果之前是正常状态，现在设置为取消，则需要将订单明细全部取消
       //反之，如果之前已取消，现在设置为正常，则需要将订单明细全部恢复
       if((!alreadyCanceled && curCanceled) || (alreadyCanceled && !curCanceled)){
@@ -703,14 +726,12 @@ AV.Cloud.define('BatchSetOrderEnableNCancel', function(request, response) {
     AV.Cloud.run("SetOrderEnableNCancel", {orderOid:oid, enabled:enabled, canceled:canceled}, {
       success:function(order){
         successArray.push(order);
-        console.log("成功");
         if(successArray.length + failedArray.length >= orderOidArray.length){
           response.success({"success" : successArray, "failed" : failedArray});
         }
       },
       error:function(error){
         failedArray.push(error);
-        console.log("失败");
         if(successArray.length + failedArray.length >= orderOidArray.length){
           response.error({"success" : successArray, "failed" : failedArray});
         }
