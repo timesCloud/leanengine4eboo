@@ -81,12 +81,13 @@ AV.Cloud.afterSave('BatchTable', function(request){
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
-  console.log("AddOrder"+request.params);
   var storeOid = request.params.storeOid;
   var userOid = request.params.userOid;
   var remark = request.params.remark;
   var detailList = request.params.detailList;
   var orderTime = moment().toDate();
+
+  console.log("AddOrder",storeOid, userOid, remark, detailList, orderTime);
 
   if(storeOid && userOid && detailList.length > 0) {
     var order = new OrderTable();
