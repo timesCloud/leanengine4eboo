@@ -666,6 +666,7 @@ AV.Cloud.define('SetOrderEnableNCancel', function(request, response){
   query.get(orderOid, {
     success: function(order){
       var alreadyCanceled = order.get("canceled");//先缓存当前是否取消的状态
+      var alreadyEnabled = order.get("enabled");//先缓存当前是否取消的状态
       order.set("enabled", (enabled == 'True' || enabled == 'true'));
       if(enabled)
         order.set("canceled", (canceled == 'True' || canceled == 'true'));
@@ -673,9 +674,11 @@ AV.Cloud.define('SetOrderEnableNCancel', function(request, response){
         order.set("canceled", true);
 
       var curCanceled = order.get("canceled");
+      var curEnabled = order.get("enabled");
       //如果之前是正常状态，现在设置为取消，则需要将订单明细全部取消
       //反之，如果之前已取消，现在设置为正常，则需要将订单明细全部恢复
-      if((!alreadyCanceled && curCanceled) || (alreadyCanceled && !curCanceled)){
+      if((!alreadyCanceled && curCanceled) || (alreadyCanceled && !curCanceled)
+          || (!alreadyEnabled && curEnabled) || (alreadyEnabled && !curEnabled)){
         var detailRelation = order.relation("orderDetail");
         detailRelation.query().find({
           success:function(detailList){
