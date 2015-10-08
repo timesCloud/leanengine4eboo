@@ -81,6 +81,7 @@ AV.Cloud.afterSave('BatchTable', function(request){
 });
 
 AV.Cloud.define("AddOrder", function(request, response){
+  console.log("AddOrder"+request.params);
   var storeOid = request.params.storeOid;
   var userOid = request.params.userOid;
   var remark = request.params.remark;
