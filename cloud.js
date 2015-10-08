@@ -401,23 +401,23 @@ AV.Cloud.define('OrderDivision', function(request, response){
       });
     }
     else {
-      console.log("原始订单已被删除，将订单明细实际订货数修改为0");
-      var orderDetail = originOrder.relation("orderDetail");
-      orderDetail.query().find({
-        success:function(orderDetailList){
-          for(var i=0; i<orderDetailList.length; i++){
-            var pendingOrderDetail = orderDetailList[i];
-            var curRealUnit = pendingOrderDetail.get("realUnit");
-            if (curRealUnit != 0){
-              pendingOrderDetail.set("realUnit", 0);
-              pendingOrderDetail.save();
-            }
-          }
-        },
-        error: function (error) {
-          console.log("Error: " + error.code + " " + error.message);
-        }
-      });
+      //console.log("原始订单已被删除，将订单明细实际订货数修改为0");
+      //var orderDetail = originOrder.relation("orderDetail");
+      //orderDetail.query().find({
+      //  success:function(orderDetailList){
+      //    for(var i=0; i<orderDetailList.length; i++){
+      //      var pendingOrderDetail = orderDetailList[i];
+      //      var curRealUnit = pendingOrderDetail.get("realUnit");
+      //      if (curRealUnit != 0){
+      //        pendingOrderDetail.set("realUnit", 0);
+      //        pendingOrderDetail.save();
+      //      }
+      //    }
+      //  },
+      //  error: function (error) {
+      //    console.log("Error: " + error.code + " " + error.message);
+      //  }
+      //});
     }
   }
 });
