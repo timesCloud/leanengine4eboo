@@ -3,10 +3,44 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override')
 var AV = require('leanengine');
+var xml2js = require('xml2js');
+var weixin = require('cloud/weixin.js');
+var utils = require('express/node_modules/connect/lib/utils');
 
 var users = require('./routes/users');
 var todos = require('./routes/todos');
 var cloud = require('./cloud');
+
+// 解析微信的 xml 数据
+var xmlBodyParser = function (req, res, next) {
+  if (req._body) return next();
+  req.body = req.body || {};
+
+  // ignore GET
+  if ('GET' == req.method || 'HEAD' == req.method) return next();
+
+  // check Content-Type
+  if ('text/xml' != utils.mime(req)) return next();
+
+  // flag as parsed
+  req._body = true;
+
+  // parse
+  var buf = '';
+  req.setEncoding('utf8');
+  req.on('data', function(chunk){ buf += chunk });
+  req.on('end', function(){
+    xml2js.parseString(buf, function(err, json) {
+      if (err) {
+        err.status = 400;
+        next(err);
+      } else {
+        req.body = json;
+        next();
+      }
+    });
+  });
+};
 
 var app = express();
 
@@ -30,12 +64,46 @@ app.use(methodOverride('_method'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// App 全局配置
+app.set('views','cloud/views');   // 设置模板目录
+app.set('view engine', 'ejs');    // 设置 template 引擎
+app.use(express.bodyParser());    // 读取请求 body 的中间件
+app.use(xmlBodyParser);
+
 // 可以将一类的路由单独保存在一个文件中
 app.use('/todos', todos);
 app.use('/users', users);
 
 app.get('/', function(req, res) {
   res.redirect('/todos');
+})
+
+app.get('/hello', function(req, res) {
+  res.render('hello', { message: 'Congrats, you just set up your app!' });
+});
+
+app.get('/weixin', function(req, res) {
+  console.log('weixin req:', req.query);
+  weixin.exec(req.query, function(err, data) {
+    if (err) {
+      return res.send(err.code || 500, err.message);
+    }
+    return res.send(data);
+  });
+})
+
+app.post('/wechat', function(req, res) {
+  console.log('wechat req:', req.body);
+  weixin.exec(req.body, function(err, data) {
+    if (err) {
+      return res.send(err.code || 500, err.message);
+    }
+    var builder = new xml2js.Builder();
+    var xml = builder.buildObject(data);
+    console.log('res:', data)
+    res.set('Content-Type', 'text/xml');
+    return res.send(xml);
+  });
 })
 
 // 如果任何路由都没匹配到，则认为 404
