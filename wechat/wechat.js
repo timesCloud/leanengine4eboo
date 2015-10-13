@@ -1,5 +1,5 @@
 var crypto = require('crypto');
-var config = require('cloud/config/weixin.js');
+var config = require('./config/weixin.js');
 var debug = require('debug')('AV:weixin');
 
 exports.exec = function(params, cb) {

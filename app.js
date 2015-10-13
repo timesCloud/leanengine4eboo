@@ -1,11 +1,11 @@
 var express = require('express');
+var xml2js = require('xml2js');
+var weixin = require('./wechat/wechat.js');
+//var utils = require('express/node_modules/connect/lib/utils');
 var path = require('path');
 var bodyParser = require('body-parser');
-var methodOverride = require('method-override')
+var methodOverride = require('method-override');
 var AV = require('leanengine');
-var xml2js = require('xml2js');
-var weixin = require('cloud/weixin.js');
-var utils = require('express/node_modules/connect/lib/utils');
 
 var users = require('./routes/users');
 var todos = require('./routes/todos');
@@ -20,7 +20,7 @@ var xmlBodyParser = function (req, res, next) {
   if ('GET' == req.method || 'HEAD' == req.method) return next();
 
   // check Content-Type
-  if ('text/xml' != utils.mime(req)) return next();
+//  if ('text/xml' != utils.mime(req)) return next();
 
   // flag as parsed
   req._body = true;
@@ -67,7 +67,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // App 全局配置
 app.set('views','cloud/views');   // 设置模板目录
 app.set('view engine', 'ejs');    // 设置 template 引擎
-app.use(express.bodyParser());    // 读取请求 body 的中间件
+//app.use(express.bodyParser());    // 读取请求 body 的中间件
+app.use(bodyParser.json());
 app.use(xmlBodyParser);
 
 // 可以将一类的路由单独保存在一个文件中
