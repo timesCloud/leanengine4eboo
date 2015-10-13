@@ -1,6 +1,6 @@
 var express = require('express');
 var xml2js = require('xml2js');
-var weixin = require('./wechat/wechat.js');
+var weixin = require('./wechat/wechat');
 //var utils = require('express/node_modules/connect/lib/utils');
 var path = require('path');
 var bodyParser = require('body-parser');
@@ -83,8 +83,8 @@ app.get('/hello', function(req, res) {
   res.render('hello', { message: 'Congrats, you just set up your app!' });
 });
 
-app.get('/weixin', function(req, res) {
-  console.log('weixin req:', req.query);
+app.get('/wechat', function(req, res) {
+  console.log('wechat get req:', req.query);
   weixin.exec(req.query, function(err, data) {
     if (err) {
       return res.send(err.code || 500, err.message);
@@ -94,7 +94,7 @@ app.get('/weixin', function(req, res) {
 })
 
 app.post('/wechat', function(req, res) {
-  console.log('wechat req:', req.body);
+  console.log('wechat post req:', req.body);
   weixin.exec(req.body, function(err, data) {
     if (err) {
       return res.send(err.code || 500, err.message);

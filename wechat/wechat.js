@@ -3,6 +3,7 @@ var config = require('./config/weixin.js');
 var debug = require('debug')('AV:weixin');
 
 exports.exec = function(params, cb) {
+  console.log("随便看看");
   if (params.signature) {
     checkSignature(params.signature, params.timestamp, params.nonce, params.echostr, cb);
   } else {
@@ -12,6 +13,7 @@ exports.exec = function(params, cb) {
 
 // 验证签名
 var checkSignature = function(signature, timestamp, nonce, echostr, cb) {
+  console.log("进来了");
   var oriStr = [config.token, timestamp, nonce].sort().join('')
   var code = crypto.createHash('sha1').update(oriStr).digest('hex');
   debug('code:', code)
