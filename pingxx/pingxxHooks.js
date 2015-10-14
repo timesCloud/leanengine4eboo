@@ -20,12 +20,12 @@ exports.exec = function(req, res) {
         try {
             var event = JSON.parse(postData);
             if (event.type === undefined) {
-                return resp('Event 对象中缺少 type 字段', 400);
+                return res.send('Event 对象中缺少 type 字段', 400);
             }
             switch (event.type) {
                 case "charge.succeeded":
                     // 开发者在此处加入对支付异步通知的处理代码
-                    return resp("OK", 200);
+                    return res.send("OK", 200);
                     var testObject = new TestObject();
                     testObject.set('foo', "56");
                     testObject.save(null, {
@@ -36,14 +36,14 @@ exports.exec = function(req, res) {
                     break;
                 case "refund.succeeded":
                     // 开发者在此处加入对退款异步通知的处理代码
-                    return resp("OK", 200);
+                    return res.send("OK", 200);
                     break;
                 default:
-                    return resp("未知 Event 类型", 400);
+                    return res.send("未知 Event 类型", 400);
                     break;
             }
         } catch (err) {
-            return resp('JSON 解析失败', 400);
+            return res.send('JSON 解析失败', 400);
         }
     });
 };

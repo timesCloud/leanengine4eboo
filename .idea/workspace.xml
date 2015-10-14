@@ -57,8 +57,8 @@
       <file leaf-file-name="pingxxHooks.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/pingxx/pingxxHooks.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5">
-              <caret line="34" column="23" selection-start-line="34" selection-start-column="23" selection-end-line="34" selection-end-column="23" />
+            <state vertical-scroll-proportion="0.421875">
+              <caret line="29" column="48" selection-start-line="29" selection-start-column="48" selection-end-line="29" selection-end-column="48" />
               <folding>
                 <element signature="e#0#45#0" expanded="false" />
               </folding>
@@ -154,8 +154,8 @@
         <option value="$PROJECT_DIR$/cloud.js" />
         <option value="$PROJECT_DIR$/public/pingxx/pingxxHooks.js" />
         <option value="$PROJECT_DIR$/server.js" />
-        <option value="$PROJECT_DIR$/pingxx/pingxxHooks.js" />
         <option value="$PROJECT_DIR$/app.js" />
+        <option value="$PROJECT_DIR$/pingxx/pingxxHooks.js" />
       </list>
     </option>
   </component>
@@ -917,8 +917,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/pingxx/pingxxHooks.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5">
-          <caret line="34" column="23" selection-start-line="34" selection-start-column="23" selection-end-line="34" selection-end-column="23" />
+        <state vertical-scroll-proportion="0.421875">
+          <caret line="29" column="48" selection-start-line="29" selection-start-column="48" selection-end-line="29" selection-end-column="48" />
           <folding>
             <element signature="e#0#45#0" expanded="false" />
           </folding>
