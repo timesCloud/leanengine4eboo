@@ -7,6 +7,7 @@ var AV = require('leanengine');
 var users = require('./routes/users');
 var todos = require('./routes/todos');
 var cloud = require('./cloud');
+var pingxxHooks = require('./pingxx/pingxxHooks');
 
 var app = express();
 
@@ -36,7 +37,12 @@ app.use('/users', users);
 
 app.get('/', function(req, res) {
   res.redirect('/todos');
-})
+});
+
+app.get('/pingxxhooks', function(req, res) {
+  console.log('pingxxhooks req:', req.query);
+  pingxxHooks.exec(req, res);
+});
 
 // 如果任何路由都没匹配到，则认为 404
 // 生成一个异常让后面的 err handler 捕获

@@ -2,20 +2,9 @@
  * Created by tsaolipeng on 15/10/14.
  */
 var AV = require('leanengine');
-var express = require('express');
-
-var app = express();
 
 
-
-
-
-
-
-
-
-var http = require('http');
-http.createServer(function (req, res) {
+exports.exec = function(req, res) {
     req.setEncoding('utf8');
     var postData = "";
     req.addListener("data", function (chunk) {
@@ -37,6 +26,13 @@ http.createServer(function (req, res) {
                 case "charge.succeeded":
                     // 开发者在此处加入对支付异步通知的处理代码
                     return resp("OK", 200);
+                    var testObject = new TestObject();
+                    testObject.set('foo', "56");
+                    testObject.save(null, {
+                        success:function(testObject){
+                            //do nothing
+                        }
+                    });
                     break;
                 case "refund.succeeded":
                     // 开发者在此处加入对退款异步通知的处理代码
@@ -50,4 +46,4 @@ http.createServer(function (req, res) {
             return resp('JSON 解析失败', 400);
         }
     });
-}).listen(8080, "0.0.0.0");
+};
