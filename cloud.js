@@ -896,4 +896,16 @@ AV.Cloud.define('RefreshOrderDetailStatInOneDay', function(request, response){
   });
 });
 
+AV.Cloud.define('GetWechatSignature', function(request, response){
+  // noncestr
+  var createNonceStr = function() {
+    return Math.random().toString(36).substr(2, 15);
+  };
+
+  // timestamp
+  var createTimeStamp = function () {
+    return parseInt(new Date().getTime() / 1000) + '';
+  };
+});
+
 module.exports = AV.Cloud;

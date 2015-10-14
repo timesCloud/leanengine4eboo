@@ -40,7 +40,22 @@ app.get('/', function(req, res) {
 });
 
 app.get('/pingxxhooks', function(req, res) {
-  console.log('pingxxhooks req:', req.query);
+  console.log('pingxxhooks req:');
+  pingxxHooks.exec(req, res);
+});
+
+app.post('/pingxxhooks', function(req, res) {
+  console.log('pingxxhooks post:');
+  pingxxHooks.exec(req, res);
+});
+
+app.get('/wxOauth2Redirect', function(req, res) {
+  console.log('wxOauth2Redirect req:');
+  pingxxHooks.exec(req, res);
+});
+
+app.post('/wxOauth2Redirect', function(req, res) {
+  console.log('wxOauth2Redirect post:');
   pingxxHooks.exec(req, res);
 });
 
