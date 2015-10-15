@@ -8,6 +8,7 @@ var users = require('./routes/users');
 var todos = require('./routes/todos');
 var cloud = require('./cloud');
 var pingxxHooks = require('./pingxx/pingxxHooks');
+var wcOauth2 = require('./wechat/wcOauth2');
 
 var app = express();
 
@@ -35,6 +36,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/todos', todos);
 app.use('/users', users);
 
+//路由
 app.get('/', function(req, res) {
   res.redirect('/todos');
 });
@@ -49,14 +51,9 @@ app.post('/pingxxhooks', function(req, res) {
   pingxxHooks.exec(req, res);
 });
 
-app.get('/wxOauth2Redirect', function(req, res) {
+app.get('/wcOauth2Redirect', function(req, res) {
   console.log('wxOauth2Redirect req:');
-  pingxxHooks.exec(req, res);
-});
-
-app.post('/wxOauth2Redirect', function(req, res) {
-  console.log('wxOauth2Redirect post:');
-  pingxxHooks.exec(req, res);
+  wcOauth2.exec(req.query, res);
 });
 
 // 如果任何路由都没匹配到，则认为 404

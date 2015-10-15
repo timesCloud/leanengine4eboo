@@ -8,6 +8,8 @@ var DistributionCenter = AV.Object.extend("DistributionCenter");
 var DeliveryRoute = AV.Object.extend("DeliveryRoute");
 var User = AV.Object.extend("User");
 
+var wcSignature = require('./wechat/wcSignature.js');
+
 /**
  * 一个简单的云代码方法
  */
@@ -30,7 +32,7 @@ AV.Cloud.beforeSave('Todo', function(req, res) {
   tags = _.uniq(tags);
   todo.set('tags', tags);
   res.success();
-})
+});
 
 AV.Cloud.afterSave('DetailPrice', function(request){
   var answer = request.object.get('answer');
@@ -897,15 +899,14 @@ AV.Cloud.define('RefreshOrderDetailStatInOneDay', function(request, response){
 });
 
 AV.Cloud.define('GetWechatSignature', function(request, response){
-  // noncestr
-  var createNonceStr = function() {
-    return Math.random().toString(36).substr(2, 15);
-  };
-
-  // timestamp
-  var createTimeStamp = function () {
-    return parseInt(new Date().getTime() / 1000) + '';
-  };
+  console.log('GetWechatSignature begin');
+  wcSignature.exec(request.params, function(err, data) {
+    if (err) {
+      response.error(err.code || 500, err.message);
+    } else {
+      response.success(data);
+    }
+  });
 });
 
 module.exports = AV.Cloud;
