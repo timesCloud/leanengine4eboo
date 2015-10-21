@@ -15,29 +15,44 @@ var BindingOpenid = function(access_token, userObjectId, res){
         console.log('access_token_obj:', access_token);
         var openid = access_token.openid;
         //var unionid = access_token_obj.unionid;
-        console.log('current openid:', openid);//, 'unionid:', unionid);
+        console.log('current openid:', openid, 'currentUser:', userObjectId);
 
         var query = new AV.Query(User);
         query.get(userObjectId, {
             success: function (user) {
-                var userWCInfos = new UserWCInfos;
-                userWCInfos.set("user", user);
-                userWCInfos.set("openid", openid);
-                userWCInfos.save(null, {
-                    success: function (userWCInfos) {
-                        // 成功保存之后，执行其他逻辑.
-                        console.log("userWCInfos saved");
-                        res.end(0);
+                var queryWCInfos = new AV.Query(UserWCInfos);
+                queryWCInfos.equalTo("user", user);
+                queryWCInfos.first({
+                    success: function (object) {
+                        var userWCInfos = null;
+                        if(object){
+                            userWCInfos = object;
+                        }else {
+                            userWCInfos = new UserWCInfos();
+                        }
+                        userWCInfos.set("user", user);
+                        userWCInfos.set("openid", openid);
+                        userWCInfos.save(null, {
+                            success: function (userWCInfos) {
+                                // 成功保存之后，执行其他逻辑.
+                                console.log("userWCInfos saved", openid);
+                                //res.end(0);
+                                res.redirect('http://www.91ebu.com/wechat');
+                            },
+                            error: function (userWCInfos, error) {
+                                console.log("userWCInfos save failure", error.message);
+                                res.end(40002);
+                            }
+                        });
                     },
-                    error: function (userWCInfos, error) {
-                        console.log("userWCInfos save failure", error.message);
-                        res.end(40002);
+                    error: function (error) {
+                        res.end(40003);
                     }
                 });
             },
             error: function (user, error) {
                 console.log("binding openid to user failure, objectId:", userObjectId, error.message);
-                res.end(40003);
+                res.end("绑定微信账号失败，请联系管理员");
             }
         });
     }

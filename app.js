@@ -7,7 +7,10 @@ var AV = require('leanengine');
 var users = require('./routes/users');
 var todos = require('./routes/todos');
 var cloud = require('./cloud');
+var orderCloud = require('./leancloudcode/orderCloudCode.js');
+var verifyCodeCloud = require('./leancloudcode/verifyCodeCloudCode');
 var pingxxHooks = require('./pingxx/pingxxHooks');
+var createCharge = require('./pingxx/createCharge');
 var wcOauth2 = require('./wechat/wcOauth2');
 
 var app = express();
@@ -20,6 +23,8 @@ app.use('/static', express.static('public'));
 
 // 加载云代码方法
 app.use(cloud);
+app.use(orderCloud);
+app.use(verifyCodeCloud);
 
 // 加载 cookieSession 以支持 AV.User 的会话状态
 app.use(AV.Cloud.CookieSession({ secret: '05XgTktKPMkU', maxAge: 3600000, fetchUser: true }));
@@ -36,7 +41,26 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/todos', todos);
 app.use('/users', users);
 
+//跨域请求处理
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Content-Type,Content-Length, Authorization, Accept,X-Requested-With");
+  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+  res.header("X-Powered-By",'3.2.1');
+  console.log("跨域post");
+  if(req.method=="OPTIONS") {
+    res.sendStatus(200);
+    /让options请求快速返回/
+  }
+  else  {
+    next();
+  }
+});
 //路由
+app.get('/auth/:id/:password', function(req, res) {
+  res.send({id:req.params.id, name: req.params.password});
+});
+
 app.get('/', function(req, res) {
   res.redirect('/todos');
 });
@@ -49,6 +73,11 @@ app.get('/pingxxhooks', function(req, res) {
 app.post('/pingxxhooks', function(req, res) {
   console.log('pingxxhooks post:');
   pingxxHooks.exec(req, res);
+});
+
+app.post('/createCharge', function(req, res) {
+  console.log('createCharge post:');
+  createCharge.exec(req, res);
 });
 
 app.get('/wcOauth2Redirect', function(req, res) {

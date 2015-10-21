@@ -2,7 +2,7 @@
  * Created by tsaolipeng on 15/10/14.
  */
 var AV = require('leanengine');
-var TestObject = AV.Object.extend("TestObject");
+var OrderTable = AV.Object.extend("OrderTable");
 
 /*测试参数
  {
@@ -82,11 +82,24 @@ exports.exec = function(req, res) {
                 var orderID = req.body.data.object.order_no;
                 var amount = req.body.data.object.amount;
                 var payTime = timestampToTime(req.body.data.object.time_paid);
-                var to = new TestObject();
-                to.set("foo", "poo");
-                to.save(null, {
-                    success:function(to){
-                        console.log("保存成功",to);
+                console.log("订单支付成功回调参数：", ch_id, orderID, amount, payTime);
+                var query = new AV.Query(OrderTable);
+                query.equalTo("orderID", orderID);
+                query.first({
+                    success: function (order) {
+                        if(order) {
+                            order.set("ch_id", ch_id);
+                            order.set("paid", true);
+                            order.set("payTime", payTime);
+                            order.save(null, {
+                                success: function (order) {
+                                    console.log("订单支付信息保存成功", order);
+                                },
+                                error: function (error) {
+                                    console.log(error);
+                                }
+                            });
+                        }
                     },
                     error:function(error){
                         console.log(error);
