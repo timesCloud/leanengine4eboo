@@ -19,7 +19,7 @@ AV.Cloud.define("AddOrder", function(request, response){
     var detailList = request.params.detailList;
     var orderTime = moment().toDate();
 
-    console.log("AddOrder",storeOid, userOid, remark, detailList, orderTime);
+    console.log("AddOrder，参数表：",storeOid, userOid, remark, detailList, orderTime);
 
     if(storeOid && userOid && detailList.length > 0) {
         var order = new OrderTable();
@@ -47,32 +47,36 @@ AV.Cloud.define("AddOrder", function(request, response){
                         for (var i = 0; i < detailList.length; i++) {
                             var orderDetailInfo = detailList[i];
                             var orderDetail = new OrderDetail();
-                            var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
-                            orderDetail.set("orderDetailProductName", product);
-                            orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
-                            orderDetail.set("orderTime", orderTime);
-                            orderDetail.fetchWhenSave(true);
-                            orderDetail.save(null, {
-                                success: function (orderDetail) {
-                                    orderDetailRelation.add(orderDetail);
-                                    order.increment("orderSumPrice", orderDetail.get('realPrice'));
-                                    if (++savedDetailCount >= detailList.length) {
-                                        //订单明细全部完成保存后，保存订单
-                                        order.set("orderSC", orderDetail.get("orderSC"));//将order的分拣中心设置为最后一个明细关联的分拣中心
-                                        order.save(null, {
-                                            success: function (order) {
-                                                response.success(order);
-                                            },
-                                            error: function (order, error) {
-                                                response.error("订单最终保存失败：" + error);
-                                            }
-                                        });//订单保存结束
+                            if(orderDetailInfo.productOid.length > 8) {
+                                var product = AV.Object.createWithoutData("Product", orderDetailInfo.productOid);
+                                orderDetail.set("orderDetailProductName", product);
+                                orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
+                                orderDetail.set("orderTime", orderTime);
+                                orderDetail.fetchWhenSave(true);
+                                orderDetail.save(null, {
+                                    success: function (orderDetail) {
+                                        orderDetailRelation.add(orderDetail);
+                                        order.increment("orderSumPrice", orderDetail.get('realPrice'));
+                                        if (++savedDetailCount >= detailList.length) {
+                                            //订单明细全部完成保存后，保存订单
+                                            order.set("orderSC", orderDetail.get("orderSC"));//将order的分拣中心设置为最后一个明细关联的分拣中心
+                                            order.save(null, {
+                                                success: function (order) {
+                                                    response.success(order);
+                                                },
+                                                error: function (order, error) {
+                                                    response.error("订单最终保存失败：" + error);
+                                                }
+                                            });//订单保存结束
+                                        }
+                                    },
+                                    error: function (orderDetail, error) {
+                                        response.error("订单明细保存失败：" + error);
                                     }
-                                },
-                                error: function (orderDetail, error) {
-                                    response.error("订单明细保存失败：" + error);
-                                }
-                            });
+                                });
+                            }else{
+                                ++savedDetailCount;
+                            }
                         }//订单明细保存结束
 
                     },
@@ -90,7 +94,9 @@ AV.Cloud.define("AddOrder", function(request, response){
     }
 });
 
-//AV.Cloud.define("")
+var checkAddOrderParams = function(params){
+
+}
 
 AV.Cloud.define('Number2ID', function(request, response) {
     var number = request.params.number;
@@ -141,7 +147,7 @@ AV.Cloud.afterSave('OrderTable', function(request){
             //console.log("");
         },
         error:function(error) {
-            console.log("Error: " + error.code + " " + error.message);
+            console.log("Error: " + error);
         }
     });
 });
@@ -366,6 +372,172 @@ AV.Cloud.afterUpdate('OrderTable', function(request){
         },
         error:function(error){
             console.log("Error: " + error.code + " " + error.message);
+        }
+    });
+});
+
+
+AV.Cloud.define('setOrderStatu', function(request, response) {
+    var orderOidArray = request.params.orderOids;
+    var statu = request.params.statu;
+    var successArray = new Array();
+    var failedArray = new Array();
+    for(var i = 0; i < orderOidArray.length; i++){
+        var oid = orderOidArray[i];
+        var query = new AV.Query(OrderTable);
+        query.get(oid, {
+            success: function(order){
+                order.set("orderStatus", statu);
+                order.save(null, {
+                    success: function(order) {
+                        successArray.push(order);
+                        if(successArray.length + failedArray.length >= orderOidArray.length){
+                            response.success({"success" : successArray, "failed" : failedArray});
+                        }
+                    },
+                    error: function(error){
+                        failedArray.add(error);
+                        response.success({"success" : successArray, "failed" : failedArray});
+                    }
+                });
+            },
+            error:function(error){
+                failedArray.add(error);
+                response.success({"success" : successArray, "failed" : failedArray});
+            }
+        });
+    }
+});
+
+AV.Cloud.define('setOrderFieldValue', function(request, response) {
+    var orderOidArray = request.params.orderOids;
+    var field = request.params.field;
+    var value = request.params.value;
+    var successArray = new Array();
+    var failedArray = new Array();
+    for(var i = 0; i < orderOidArray.length; i++){
+        var oid = orderOidArray[i];
+        var query = new AV.Query(OrderTable);
+        query.get(oid, {
+            success: function(order){
+                order.set(field, value);
+                order.save(null, {
+                    success: function(order) {
+                        successArray.push(order);
+                        if(successArray.length + failedArray.length >= orderOidArray.length){
+                            response.success({"success" : successArray, "failed" : failedArray});
+                        }
+                    },
+                    error: function(error){
+                        failedArray.add(error);
+                        response.success({"success" : successArray, "failed" : failedArray});
+                    }
+                });
+            },
+            error:function(error){
+                failedArray.add(error);
+                response.success({"success" : successArray, "failed" : failedArray});
+            }
+        });
+    }
+});
+
+AV.Cloud.define('SetOrderEnableNCancel', function(request, response){
+    var orderOid = request.params.orderOid;
+    var enabled = request.params.enabled;
+    var canceled = request.params.canceled;
+    var query = new AV.Query(OrderTable);
+    query.get(orderOid, {
+        success: function(order){
+            var alreadyCanceled = order.get("canceled");//先缓存当前是否取消的状态
+            var alreadyEnabled = order.get("enabled");//先缓存当前是否取消的状态
+            order.set("enabled", (enabled == 'True' || enabled == 'true'));
+            if(enabled)
+                order.set("canceled", (canceled == 'True' || canceled == 'true'));
+            else//如果订单被删除（enabled为false），那么订单必须设置为取消（canceled为true）
+                order.set("canceled", true);
+
+            var curCanceled = order.get("canceled");
+            var curEnabled = order.get("enabled");
+            //如果之前是正常状态，现在设置为取消，则需要将订单明细全部取消
+            //反之，如果之前已取消，现在设置为正常，则需要将订单明细全部恢复
+            if((!alreadyCanceled && curCanceled) || (alreadyCanceled && !curCanceled)
+                || (!alreadyEnabled && curEnabled) || (alreadyEnabled && !curEnabled)){
+                var detailRelation = order.relation("orderDetail");
+                detailRelation.query().find({
+                    success:function(detailList){
+                        var processedDetailCount = 0;
+                        for(var j = 0; j < detailList.length; j++){
+                            var orderDetail = detailList[j];
+                            orderDetail.set("canceled", curCanceled);
+                            orderDetail.save(null,{
+                                success:function(orderDetail){
+                                    if(++processedDetailCount >= detailList.length){//此段代码和下方orderDetail保存失败内的代码相同
+                                        order.save(null, {
+                                            success: function(order) {
+                                                response.success(order);
+                                            },
+                                            error: function(error){
+                                                response.error(error);
+                                            }
+                                        });
+                                    }
+                                },
+                                error:function(error){
+                                    response.error(error);
+                                }
+                            });
+                        }
+                    },
+                    error:function(error){
+                        response.error(error);
+                    }
+                });
+            }
+            else{
+                response.success(order);
+            }
+        },
+        error:function(error){
+            response.error(error);
+        }
+    });
+});
+
+AV.Cloud.define('BatchSetOrderEnableNCancel', function(request, response) {
+    var orderOidArray = request.params.orderOids;
+    var enabled = request.params.enabled;
+    var canceled = request.params.canceled;
+    var successArray = new Array();
+    var failedArray = new Array();
+    for(var i = 0; i < orderOidArray.length; i++){
+        var oid = orderOidArray[i];
+        AV.Cloud.run("SetOrderEnableNCancel", {orderOid:oid, enabled:enabled, canceled:canceled}, {
+            success:function(order){
+                successArray.push(order);
+                if(successArray.length + failedArray.length >= orderOidArray.length){
+                    response.success({"success" : successArray, "failed" : failedArray});
+                }
+            },
+            error:function(error){
+                failedArray.push(error);
+                if(successArray.length + failedArray.length >= orderOidArray.length){
+                    response.error({"success" : successArray, "failed" : failedArray});
+                }
+            }
+        });
+    }
+});
+
+AV.Cloud.define("PrintOrder", function(request, response){
+    var oid = request.params.oid;
+    var query = new AV.Query(OrderTable);
+    query.get(oid, {
+        success: function(order){
+            response.success(order);
+        },
+        error: function(order, error){
+            response.error();
         }
     });
 });

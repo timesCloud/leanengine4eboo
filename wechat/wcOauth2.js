@@ -7,7 +7,7 @@ var AV = require('leanengine');
 var User = AV.Object.extend("User");
 var UserWCInfos = AV.Object.extend("UserWCInfos");
 
-var getAppsInfo = require('./../apps-info'); // 从外部加载app的配置信息
+var getAppsInfo = require('./apps-info'); // 从外部加载app的配置信息
 var appIds = getAppsInfo();
 
 var BindingOpenid = function(access_token, userObjectId, res){
@@ -61,6 +61,7 @@ var BindingOpenid = function(access_token, userObjectId, res){
 exports.exec = function(params, res){
     var code = params.code;
     var state = params.state;
+    console.log("wechat code:",code);
     // 获取微信签名所需的access_token
     var getTokenUrl = 'https://api.weixin.qq.com/sns/oauth2/access_token?appid=' + appIds[0].appid
         + '&secret=' + appIds[0].secret + '&code=' + code + '&grant_type=authorization_code';

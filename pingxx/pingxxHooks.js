@@ -70,7 +70,6 @@ exports.exec = function(req, res) {
         res.end(ret);
     };
     try {
-        console.log("大傻逼",req.body.type);
         var eventType = req.body.type;
         if (eventType === undefined) {
             return resp('Event 对象中缺少 type 字段', 400);

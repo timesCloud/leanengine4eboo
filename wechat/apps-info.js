@@ -5,9 +5,13 @@
  */
 module.exports = function(){
 	return [
-			{
+			{//正式环境
 				appid: 'wxe54b53d8fb59af50'
 				,secret: '3f8b653d6ab47e00fcfd8d1db5a6e461'
 			}
+			//{//测试环境
+			//	appid: 'wx944c6d85858042cb'
+			//	,secret: '4199b325f9a8f473beb54de561c299f6'
+			//}
 		];
 };

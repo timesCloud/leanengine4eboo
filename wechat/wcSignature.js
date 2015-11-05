@@ -41,7 +41,7 @@ var calcSignature = function (ticket, noncestr, ts, url) {
 // 2小时后过期，需要重新获取数据后计算签名
 var expireTime = 7200 - 100;
 
-var getAppsInfo = require('./../apps-info'); // 从外部加载app的配置信息
+var getAppsInfo = require('./apps-info'); // 从外部加载app的配置信息
 var appIds = getAppsInfo();
 
 /**
