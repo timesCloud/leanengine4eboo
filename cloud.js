@@ -102,67 +102,6 @@ AV.Cloud.afterSave('DetailPrice', function(request) {
   }
 });
 
-AV.Cloud.define('EditUser', function(request, response) {
-  var name = request.params.ListName;
-  var key = request.params.ListKey;
-  var id = request.params.UserID;
-  var RoleID = request.params.RoleID;
-  var User = AV.Object.extend("User"); 	
-  var query = new AV.Query(User);
-  query.get(id, {
-    success: function(user) {
-      for (var i = 0; i < name.length; i++) {
-        if(name[i]=='role'){
-          var CustomRole = AV.Object.extend("CustomRole");
-          var MyRole=new CustomRole();
-          MyRole.id=RoleID;
-          user.set('role',MyRole);
-          user.set('power',key[i]);
-          continue;
-        }
-        user.set(name[i], key[i]);
-      }
-      user.save(null, {
-        success: function(user) {
-          // 成功保存之后，执行其他逻辑.
-          response.success("更新成功！");
-        },
-        error: function(user, error) {
-          response.error("更新失败！"+error.message);
-        }
-      });
-    },
-    error: function(user, error) {
-      console.log('error');
-      response.error("更新失败"+error.message);
-    }
-
-  });
-});
-
-AV.Cloud.define('EnabledUser', function(request, response) {
-  var id = request.params.UserID;
-  var query = new AV.Query(User);
-  query.get(id, {
-    success: function(user) {
-      user.set('enabled',false);
-      user.save(null, {
-        success: function(user) {
-          // 成功保存之后，执行其他逻辑.
-          response.success("删除成功！");
-        },
-        error: function(user, error) {
-          response.error("删除失败！");
-        }
-      });
-    },
-    error: function(user, error) {
-      console.log('error');
-      response.error("删除失败");
-    }
-  });
-});
-
 AV.Cloud.define('RefreshOrderDetailStatInOneDay', function(request, response){
   var ds = request.params.dateStart;
   var de = request.params.dateEnd;

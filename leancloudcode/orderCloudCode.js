@@ -65,13 +65,13 @@ AV.Cloud.define("AddOrder", function(request, response){
                                                     response.success(order);
                                                 },
                                                 error: function (order, error) {
-                                                    response.error("订单最终保存失败：" + error);
+                                                    response.error("服务器故障，请联系客服");
                                                 }
                                             });//订单保存结束
                                         }
                                     },
                                     error: function (orderDetail, error) {
-                                        response.error("订单明细保存失败：" + error);
+                                        response.error("订单明细保存失败，请联系客服");
                                     }
                                 });
                             }else{
@@ -81,16 +81,16 @@ AV.Cloud.define("AddOrder", function(request, response){
 
                     },
                     error: function (error) {
-                        response.error("配送路线fetch失败，订单保存失败：" + error);
+                        response.error("配送路线匹配失败，请联系客服");
                     }
                 });
             },
             error: function (error) {
-                response.error("店铺fetch失败订单保存失败：" + error);
+                response.error("店铺查询失败，请联系客服");
             }
         });
     }else{
-        response.error("调用AddOrder时参数传入错误");
+        response.error("创建订单的参数错误，请联系客服");
     }
 });
 

@@ -14,6 +14,7 @@ var orderDetailCloud = require('./leancloudcode/orderDetailCloudCode.js');
 var verifyCodeCloud = require('./leancloudcode/verifyCodeCloudCode');
 var storeCloud = require('./leancloudcode/storeCloudCode');
 var wechatCloud = require('./leancloudcode/wechatCloudCode');
+var userCloud = require('./leancloudcode/userCloudCode');
 
 var pingxxHooks = require('./pingxx/pingxxHooks');
 var createCharge = require('./pingxx/createCharge');
@@ -36,6 +37,7 @@ app.use(orderDetailCloud);
 app.use(verifyCodeCloud);
 app.use(storeCloud);
 app.use(wechatCloud);
+app.use(userCloud);
 
 // 加载 cookieSession 以支持 AV.User 的会话状态
 app.use(AV.Cloud.CookieSession({ secret: '05XgTktKPMkU', maxAge: 3600000, fetchUser: true }));

@@ -84,6 +84,7 @@ exports.exec = function(req, res) {
         if (charge != null) {
             return resp(charge);
         }
+        console.log('createCharge err:',err);
         return resp({error:err.raw});
     });
 }

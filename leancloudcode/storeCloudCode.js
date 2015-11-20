@@ -46,8 +46,8 @@ AV.Cloud.define('AddStore', function(request, response) {
             store.set('city', AV.Object.createWithoutData('City', cityOid));
             store.set('storeType', AV.Object.createWithoutData('StoreType', storeTypeOid));
             store.set('salesman', salesman);
+            store.set('paymentDays', 2);
 
-            console.log(store);
             store.save(null, {
                 success:function(store){
                     var userJoinStore = new UserJoinStore();
@@ -136,6 +136,41 @@ AV.Cloud.define("PrintStore", function(request, response){
             response.success(store);
         },
         error: function(store, error){
+            response.error();
+        }
+    });
+});
+
+AV.Cloud.define("BatchUpdateAFieldValue", function(request, response){
+    var fieldName = request.params.fieldName;
+    var value = request.params.fieldValue;
+    console.log(fieldName, value);
+    var completeCount = 0;
+    var query = new AV.Query(Store);
+    query.limit(1000);
+    query.find({
+        success: function(results){
+          for (var i = 0; i < results.length; i++) {
+            var object = results[i];
+            object.set(fieldName, 2);//这里需要修正，如果一个字段已经是字符串之外的类型，这里将修正失败
+            object.save(null, {
+              success:function(object){
+                completeCount++;
+                if (completeCount == results.length) {
+                  response.success(results.length);
+                }
+              },
+              error:function(error, object){
+                completeCount++;
+                console.log(error);
+                if (completeCount == results.length) {
+                  response.success(results.length);
+                }
+              }
+            });
+          }
+        },
+        error: function(error){
             response.error();
         }
     });
