@@ -11,6 +11,7 @@ var OrderDetail = AV.Object.extend("OrderDetail");
 var DistributionCenter = AV.Object.extend("DistributionCenter");
 var DeliveryRoute = AV.Object.extend("DeliveryRoute");
 var User = AV.Object.extend("User");
+var OftenBuyProducts = AV.Object.extend("OftenBuyProducts");
 
 AV.Cloud.define('incrementOrderSum4SC', function(request, response) {
     var orderDetail = request.params.object;
@@ -112,6 +113,44 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
     }
 });
 
+AV.Cloud.afterSave('OrderDetail', function(request){
+  console.log("进入orderDetail afterSave");
+  var orderDetail = request.object;
+  if (orderDetail) {
+        //更新常购产品
+    var product = orderDetail.get("orderDetailProductName");
+    var store = orderDetail.get("orderStore");
+    var queryOBP = new AV.Query(OftenBuyProducts);
+    queryOBP.equalTo("store", store);
+    queryOBP.equalTo("product", product);
+    queryOBP.first({
+      success:function(obp){
+        if(obp){
+          obp.set("refreshTime", moment().toDate());
+          obp.save();
+        }else{
+          console.log("fuck you");
+          var newOBP = new OftenBuyProducts();
+          newOBP.set("store", store);
+          newOBP.set("product", product);
+          newOBP.set("refreshTime", moment().toDate());
+          newOBP.save(null, {
+            success:function(newOBP){
+
+            },
+            error:function(newOBP, error){
+              console.log(error);
+            }
+          });
+        }
+      },
+      error: function(error) {
+        console.log("更新常购产品发生错误: " + error.code + " " + error.message);
+      }
+    });
+  }
+});
+
 AV.Cloud.afterUpdate('OrderDetail', function(request){
     var orderDetail = request.object;
     if (orderDetail) {
@@ -161,5 +200,57 @@ AV.Cloud.define("PrintOrderDetail", function(request, response){
         }
     });
 });
+
+// AV.Cloud.define("RefreshOftenBuyProducts", function(request, response){
+//     var todayStart = moment().startOf('day').toDate();
+//     var lastDayStart = moment().startOf('day').subtract(1, 'days').toDate();
+//     var skipedCount = 0;
+//     while(skipedCount < 10000)
+//     {
+//       var query = new AV.Query(OrderDetail);
+//       query.greaterThanOrEqualTo("orderTime", lastDayStart);
+//       query.lessThan("orderTime", todayStart);
+//       query.skip(skipedCount);
+//       skipedCount = skipedCount + 100;
+//
+//       query.find({
+//         success: function(results) {
+//           if (results.length > 0) {
+//             console.log("更新常购产品，查询到昨日 " + results.length + " 个订单明细");
+//             // 处理返回的结果数据
+//             for (var i = 0; i < results.length; i++) {
+//               var orderDetail = results[i];
+//               var store = orderDetail.get("orderStore");
+//               var product = orderDetail.get("orderDetailProductName");
+//               var queryOBP = new AV.Query(OftenBuyProducts);
+//               queryOBP.equalTo("store", store);
+//               queryOBP.equalTo("product", product);
+//               queryOBP.first({
+//                 success:function(obp){
+//                   if(obp){
+//                     obp.set("refreshTime", moment().toDate);
+//                     obp.save();
+//                   }else{
+//                     var newOBP = new OftenBuyProducts();
+//                     newOBP.set("store", store);
+//                     newOBP.set("product", product);
+//                     newOBP.set("refreshTime", moment().toDate);
+//                     newOBP.save();
+//                   }
+//                 }
+//               });
+//             }
+//           }else{
+//             console.log("更新常购产品完毕，退出执行");
+//             return response.success();
+//           }
+//         },
+//         error: function(error) {
+//           console.log("更新常购产品发生错误: " + error.code + " " + error.message);
+//           return response.error();
+//         }
+//       });
+//     }
+// });
 
 module.exports = AV.Cloud;

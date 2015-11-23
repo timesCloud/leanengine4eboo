@@ -112,8 +112,7 @@ AV.Cloud.define('AddOpe', function(request, response) {
 				response.error("更新失败" + error.message);
 			}
 		});
-	)
-};
+});
 AV.Cloud.define('EditOpe', function(request, response) {
 		var CheckSCList = request.params.CheckSCList;
 		var CheckDCList = request.params.CheckDCList;
@@ -180,8 +179,7 @@ AV.Cloud.define('EditOpe', function(request, response) {
 				response.error("编辑失败" + error.message);
 			}
 		});
-	)
-};
+});
 AV.Cloud.define('deletOpe', function(request, response) {
 		var id = request.params.UserID;
 		var SClist = request.params.SClistid;
@@ -217,8 +215,7 @@ AV.Cloud.define('deletOpe', function(request, response) {
 				console.log('error');
 				response.error("删除失败" + error.message);
 			}
-		});
-	)
-};
+		});	
+});
 
 module.exports = AV.Cloud;

@@ -91,6 +91,7 @@ exports.exec = function(req, res) {
                             order.set("paid", true);
                             order.set("payTime", payTime);
                             order.set("paymentMedium",1);
+                            order.set("paymentTerm",1);
                             order.save(null, {
                                 success: function (order) {
                                     console.log("订单支付信息保存成功", order);

@@ -30,6 +30,8 @@ AV.Cloud.define("AddOrder", function(request, response){
         order.set("remark", remark);
         order.set("orderSumPrice", 0);
         order.set("orderTime", orderTime);
+        order.set("paymentTerm", 2);
+        order.set("paymentMedium", 2);
 
         store.fetch({//首先fetch店铺，以防店铺参数错误导致明细保存完成后订单保存失败
             success: function (store) {
@@ -52,6 +54,7 @@ AV.Cloud.define("AddOrder", function(request, response){
                                 orderDetail.set("orderDetailProductName", product);
                                 orderDetail.set("orderDetailProductCount", orderDetailInfo.count);
                                 orderDetail.set("orderTime", orderTime);
+                                orderDetail.set("orderStore", store);
                                 orderDetail.fetchWhenSave(true);
                                 orderDetail.save(null, {
                                     success: function (orderDetail) {
@@ -123,6 +126,7 @@ AV.Cloud.beforeSave('OrderTable', function(request, response){
             order.set("orderDC", store.get("storeDC"));
             var storeRoute = store.get("storeRoute");
             order.set("orderDeliveryRoute", storeRoute);
+            order.set("orderSalesman", store.get("salesman"));
             storeRoute.fetch({
                 success: function(storeRoute){
                     var deliverer = storeRoute.get("deliverer");
