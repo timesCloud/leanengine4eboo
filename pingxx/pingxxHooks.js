@@ -82,6 +82,10 @@ exports.exec = function(req, res) {
                 var amount = req.body.data.object.amount;
                 var payTime = timestampToTime(req.body.data.object.time_paid);
                 console.log("订单支付成功回调参数：", ch_id, orderID, amount, payTime);
+                if(orderID.length > 12){
+                  orderID = orderID.substr(0, 12);
+                  console.log("订单增加后缀后支付成功，原始订单号为：", orderID);
+                }
                 var query = new AV.Query(OrderTable);
                 query.equalTo("orderID", orderID);
                 query.first({
@@ -94,7 +98,7 @@ exports.exec = function(req, res) {
                             order.set("paymentTerm",1);
                             order.save(null, {
                                 success: function (order) {
-                                    console.log("订单支付信息保存成功", order);
+                                    console.log("订单支付信息保存成功，订单号：", orderID);
                                 },
                                 error: function (error) {
                                     console.log(error);

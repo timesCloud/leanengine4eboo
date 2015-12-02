@@ -13,6 +13,8 @@ var DeliveryRoute = AV.Object.extend("DeliveryRoute");
 var User = AV.Object.extend("User");
 
 AV.Cloud.define("AddOrder", function(request, response){
+  var hour = moment().hour();
+  if (hour >= 10 && hour < 23){
     var storeOid = request.params.storeOid;
     var userOid = request.params.userOid;
     var remark = request.params.remark;
@@ -95,6 +97,9 @@ AV.Cloud.define("AddOrder", function(request, response){
     }else{
         response.error("创建订单的参数错误，请联系客服");
     }
+  }else{
+      response.error("抱歉，系统下单时段为10:00-23:00，当前时间系统已停止接单");
+  }
 });
 
 var checkAddOrderParams = function(params){
@@ -146,12 +151,22 @@ AV.Cloud.beforeSave('OrderTable', function(request, response){
 
 AV.Cloud.afterSave('OrderTable', function(request){
     var order = request.object;
+    //生成订单编号
     AV.Cloud.run('GenerateOrderID', {object : order}, {
         success:function(object){
             //console.log("");
         },
         error:function(error) {
             console.log("Error: " + error);
+        }
+    });
+
+    var orderDetail = originOrder.relation("orderDetail");
+    orderDetail.query().find({
+        success:function(orderDetailList){
+        },
+        error:function(error){
+
         }
     });
 });
@@ -411,6 +426,19 @@ AV.Cloud.define('setOrderStatu', function(request, response) {
             }
         });
     }
+});
+
+AV.Cloud.define('setOrderDetailBinding', function(request, response){
+  var query = new AV.Query(OrderTable);
+  query.equalTo('lastRealUnit', 9999);
+  query.find({
+    success: function(results) {
+      response.success(results);
+    },
+    error: function(error) {
+      response.error("Error: " + error.code + " " + error.message);
+    }
+  });
 });
 
 AV.Cloud.define('setOrderFieldValue', function(request, response) {
