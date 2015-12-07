@@ -38,8 +38,8 @@ AV.Cloud.define('AddStore', function(request, response) {
             store.set('owner', AV.Object.createWithoutData('User', ownerOid));
             store.set('storeAddress', storeAddress);
 
-            var earlyTime = moment().set({'hour':earlyHour, 'minute':earlyMinute, 'second':0}).toDate();
-            var latestTime = moment().set({'hour':latestHour, 'minute':latestMinute, 'second':0}).toDate();
+            var earlyTime = moment("2007-1-9").set({'hour':earlyHour, 'minute':earlyMinute, 'second':0}).toDate();
+            var latestTime = moment("2007-1-9").set({'hour':latestHour, 'minute':latestMinute, 'second':0}).toDate();
 
             store.set('earlyTime', earlyTime);
             store.set('latestTime', latestTime);
@@ -128,14 +128,42 @@ AV.Cloud.beforeSave("Store", function(request, response){
     });
 });
 
-AV.Cloud.define("PrintStore", function(request, response){
+AV.Cloud.define("ResetEarlyNLatestTime", function(request, response){
     var oid = request.params.oid;
     var query = new AV.Query(Store);
-    query.get(oid, {
-        success: function(store){
-            response.success(store);
+    query.find({
+        success: function(results){
+            var completeCount = 0;
+            for (var i = 0; i < results.length; i++) {
+              var object = results[i];
+              var earlyTime = moment(object.get("earlyTime"));
+              var latestTime = moment(object.get("latestTime"));
+              var earlyHour = earlyTime.hour();
+              var earlyMinute = earlyTime.minute();
+              var latestHour = latestTime.hour();
+              var latestMinute = latestTime.minute();
+              var newEarlyTime = moment("2007-01-09").set({'hour':earlyHour, 'minute':earlyMinute, 'second':0}).toDate();
+              var newLatestTime = moment("2007-01-09").set({'hour':latestHour, 'minute':latestMinute, 'second':0}).toDate();
+              object.set("earlyTime", newEarlyTime);
+              object.set("latestTime", newLatestTime);
+              object.save(null, {
+                success:function(object){
+                  completeCount++;
+                  if (completeCount == results.length) {
+                    response.success(results.length);
+                  }
+                },
+                error:function(error, object){
+                  completeCount++;
+                  console.log(error);
+                  if (completeCount == results.length) {
+                    response.success(results.length);
+                  }
+                }
+              });
+            }
         },
-        error: function(store, error){
+        error: function(error){
             response.error();
         }
     });
