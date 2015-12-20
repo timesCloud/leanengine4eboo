@@ -35,6 +35,7 @@ AV.Cloud.define("AddOrder", function(request, response){
         order.set("orderTime", orderTime);
         order.set("paymentTerm", 2);
         order.set("paymentMedium", 2);
+        order.set("orderStatus", 2);
 
         store.fetch({//首先fetch店铺，以防店铺参数错误导致明细保存完成后订单保存失败
             success: function (store) {
@@ -52,6 +53,7 @@ AV.Cloud.define("AddOrder", function(request, response){
                             success: function (order) {
                                 var savedDetailCount = 0;
                                 var orderDetailRelation = order.relation("orderDetail");
+                                var detailerror = "";
                                 for (var i = 0; i < detailList.length; i++) {
                                     var orderDetailInfo = detailList[i];
                                     var orderDetail = new OrderDetail();
@@ -76,7 +78,8 @@ AV.Cloud.define("AddOrder", function(request, response){
                                                             order.set("orderID", orderID);
                                                             order.save(null, {
                                                                 success: function (order) {
-                                                                    response.success(order);
+                                                                    console.log("下单成功", detailerror);
+                                                                    response.success(detailerror);
                                                                 },
                                                                 error: function (order, error) {
                                                                     response.error("服务器故障，请联系客服");
@@ -91,7 +94,9 @@ AV.Cloud.define("AddOrder", function(request, response){
                                                 }
                                             },
                                             error: function (orderDetail, error) {
-                                                response.error("订单明细保存失败，请联系客服");
+                                                //订单明细保存失败不影响订单本身的保存，但需要将错误提示积累起来，最后返回
+                                                ++savedDetailCount;
+                                                detailerror = detailerror + error.message + ",";
                                             }
                                         });
                                     }else{

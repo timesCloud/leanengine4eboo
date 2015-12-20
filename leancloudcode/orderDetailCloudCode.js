@@ -19,29 +19,34 @@ AV.Cloud.beforeSave('OrderDetail', function(request, response){
         var product = orderDetail.get("orderDetailProductName");
         product.fetch({
             success: function (pd) {
-                var unitPerPackage = pd.get("unitPerPackage");
-                var unitPrice = pd.get("unitPrice");
-                var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
-                var realUnit = unitPerPackage * orderDetailProductCount;
-                var realPrice = unitPrice * realUnit;
-                orderDetail.set("realUnit", realUnit);
-                orderDetail.set("realPrice", parseFloat(realPrice.toFixed(2)));
+                if(pd.get('onsell')){//商品是上架状态
+                    var unitPerPackage = pd.get("unitPerPackage");
+                    var unitPrice = pd.get("unitPrice");
+                    var orderDetailProductCount = orderDetail.get("orderDetailProductCount");
+                    var realUnit = unitPerPackage * orderDetailProductCount;
+                    var realPrice = unitPrice * realUnit;
+                    orderDetail.set("realUnit", realUnit);
+                    orderDetail.set("realPrice", parseFloat(realPrice.toFixed(2)));
 
-                orderDetail.set("productName", pd.get("productName"));
-                orderDetail.set("productPrice", pd.get("productPrice"));
-                orderDetail.set("packageString", pd.get("packageString"));
-                orderDetail.set("unitPerPackage", pd.get("unitPerPackage"));
-                orderDetail.set("unitString", pd.get("unitString"));
-                orderDetail.set("unitPrice", pd.get("unitPrice"));
-                orderDetail.set("orderSC", pd.get("sortingCenter"));
-                orderDetail.set("isIndividualPackage", pd.get("isIndividualPackage"));
+                    orderDetail.set("productName", pd.get("productName"));
+                    orderDetail.set("productPrice", pd.get("productPrice"));
+                    orderDetail.set("packageString", pd.get("packageString"));
+                    orderDetail.set("unitPerPackage", pd.get("unitPerPackage"));
+                    orderDetail.set("unitString", pd.get("unitString"));
+                    orderDetail.set("unitPrice", pd.get("unitPrice"));
+                    orderDetail.set("orderSC", pd.get("sortingCenter"));
+                    orderDetail.set("isIndividualPackage", pd.get("isIndividualPackage"));
 
-                var curOrderTime = orderDetail.get("orderTime");
-                if (!curOrderTime){
-                    orderDetail.set("orderTime", orderDetail.createdAt);
+                    var curOrderTime = orderDetail.get("orderTime");
+                    if (!curOrderTime){
+                        orderDetail.set("orderTime", orderDetail.createdAt);
+                    }
+
+                    response.success();
+                }else{//商品是下架状态
+                    console.log(pd.get('productName') + "已下架");
+                    response.error(pd.get('productName') + "已下架");
                 }
-
-                response.success();
             }
         });
         //console.log("订单明细保存成功");
