@@ -43,6 +43,7 @@ AV.Cloud.define("AddOrder", function(request, response){
                 var storeRoute = store.get("storeRoute");
                 order.set("orderDeliveryRoute", storeRoute);
                 order.set("orderSalesman", store.get("salesman"));
+                order.set("numberInDay", store.get("storeNumber"));
                 storeRoute.fetch({
                     success: function (storeRoute) {
                         var deliverer = storeRoute.get("deliverer");

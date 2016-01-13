@@ -102,31 +102,21 @@ AV.Cloud.define('AddStore', function(request, response) {
  */
 
 
-AV.Cloud.beforeSave("Store", function(request, response){
-    var store = request.object;
-    var queryDC = new AV.Query(DistributionCenter);
-    queryDC.get("55f23ce460b2b52c5403f0ce", {
-        success: function(dc){
-            store.set("storeDC", dc);
-            var queryDR = new AV.Query(DeliveryRoute);
-            queryDR.get("55f7d8b4ddb23dadf520f6fe", {
-                success: function(dr){
-                    store.set("storeRoute", dr);
-                    console.log('自动绑定配送站成功');
-                    response.success();
-                },
-                error: function(error){
-                    console.log("自动绑定配送站失败",error.message);
-                    response.error(error);
-                }
-            });
-        },
-        error: function(error){
-            console.log("自动绑定配送站失败",error.message);
-            response.error(error);
-        }
-    });
-});
+ AV.Cloud.beforeSave("Store", function(request, response){
+     var store = request.object;
+     var city = store.get("city");
+     city.fetch({
+       success:function(city){
+         store.set("storeDC", city.get("defaultDC"));
+         store.set("storeRoute", city.get("defaultDR"));
+         response.success();
+       },
+       error: function(error){
+           console.log("从城市获取默认配送站失败",error.message);
+           response.error(error);
+       }
+     });
+ });
 
 AV.Cloud.define("ResetEarlyNLatestTime", function(request, response){
     var oid = request.params.oid;
